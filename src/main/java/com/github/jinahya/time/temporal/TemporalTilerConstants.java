@@ -11,8 +11,8 @@ import java.util.Map;
  * Decomposition graph for {@link ChronoUnit}.
  *
  * <p>The graph defines which unit cleanly decomposes into which narrower unit(s)
- * for boundary-aligned tiling. "A → B" means a calendar-aligned span of A always
- * contains a whole number of calendar-aligned spans of B.
+ * for boundary-aligned tiling. "A → B" means a calendar-aligned span of A always contains a whole number of
+ * calendar-aligned spans of B.
  *
  * <pre>{@code
  * MILLENNIA → CENTURIES → DECADES → YEARS → MONTHS → DAYS → HALF_DAYS → HOURS → MINUTES → SECONDS → MILLIS → MICROS → NANOS
@@ -21,14 +21,13 @@ import java.util.Map;
  * }</pre>
  *
  * <p>{@link ChronoUnit#WEEKS} is a second parent of {@link ChronoUnit#DAYS} but
- * is not reachable from any wider unit (a month is not a whole number of weeks).
- * It can only appear as a ceiling.
+ * is not reachable from any wider unit (a month is not a whole number of weeks). It can only appear as a ceiling.
  */
 final class TemporalTilerConstants {
 
     /**
-     * The main decomposition chain from widest to narrowest.
-     * Every consecutive pair (i, i+1) represents a valid parent → child edge.
+     * The main decomposition chain from widest to narrowest. Every consecutive pair (i, i+1) represents a valid parent
+     * → child edge.
      *
      * <pre>{@code
      * MILLENNIA → CENTURIES �� DECADES → YEARS → MONTHS → DAYS → HALF_DAYS → HOURS → MINUTES �� SECONDS → MILLIS → MICROS → NANOS
@@ -51,9 +50,8 @@ final class TemporalTilerConstants {
     );
 
     /**
-     * The orphan chain: {@link ChronoUnit#WEEKS} connects into the main chain at
-     * {@link ChronoUnit#DAYS}, but nothing in the main chain decomposes into WEEKS
-     * (a month is not a whole number of weeks).
+     * The orphan chain: {@link ChronoUnit#WEEKS} connects into the main chain at {@link ChronoUnit#DAYS}, but nothing
+     * in the main chain decomposes into WEEKS (a month is not a whole number of weeks).
      *
      * <p>WEEKS can only be used as a ceiling. From WEEKS, the path joins the main
      * chain at DAYS and continues downward.
@@ -65,15 +63,14 @@ final class TemporalTilerConstants {
     static final List<ChronoUnit> WEEKS_CHAIN;
 
     /**
-     * All distinct decomposition chains. A valid ceiling→floor path must be a
-     * contiguous sub-path of exactly one of these chains.
+     * All distinct decomposition chains. A valid ceiling→floor path must be a contiguous sub-path of exactly one of
+     * these chains.
      */
     static final List<List<ChronoUnit>> ALL_CHAINS;
 
     /**
-     * Adjacency list: each unit maps to its valid narrower children for decomposition.
-     * Lookup returns an empty list for leaf units (NANOS) and units not in the graph
-     * (ERAS, FOREVER).
+     * Adjacency list: each unit maps to its valid narrower children for decomposition. Lookup returns an empty list for
+     * leaf units (NANOS) and units not in the graph (ERAS, FOREVER).
      *
      * <p>Example entries:
      * <ul>
@@ -87,16 +84,16 @@ final class TemporalTilerConstants {
     static final Map<ChronoUnit, List<ChronoUnit>> CHILDREN;
 
     /**
-     * Adjacency list: each unit maps to its valid wider parents for decomposition.
-     * Lookup returns an empty list for root units (MILLENNIA) and units not in the graph.
+     * Adjacency list: each unit maps to its valid wider parents for decomposition. Lookup returns an empty list for
+     * root units (MILLENNIA) and units not in the graph.
      *
      * <p>{@link ChronoUnit#DAYS} has two parents: {@code [MONTHS, WEEKS]}.
      */
     static final Map<ChronoUnit, List<ChronoUnit>> PARENTS;
 
     /**
-     * For each {@link ChronoUnit}, the complete sub-path from that unit down to
-     * the deepest reachable unit ({@link ChronoUnit#NANOS}).
+     * For each {@link ChronoUnit}, the complete sub-path from that unit down to the deepest reachable unit
+     * ({@link ChronoUnit#NANOS}).
      *
      * <p>Example entries:
      * <ul>
