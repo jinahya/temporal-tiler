@@ -11,7 +11,7 @@
 
   <groupId>com.github.jinahya</groupId>
   <artifactId>temporal-tiler</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.0.1</version>
 
   <name>${project.artifactId}</name>
   <url>https://github.com/jinahya/temporal-slicer</url>
@@ -19,6 +19,10 @@
   <prerequisites>
     <maven>3.0</maven>
   </prerequisites>
+
+  <scm>
+    <tag>0.0.1</tag>
+  </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
