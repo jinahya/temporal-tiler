@@ -1,6 +1,7 @@
 # temporal-tiler
 
 [![Java CI with Maven](https://github.com/jinahya/temporal-tiler/actions/workflows/maven.yml/badge.svg)](https://github.com/jinahya/temporal-tiler/actions/workflows/maven.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jinahya_temporal-tiler&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jinahya_temporal-tiler)
 [![Maven Central Version](https://img.shields.io/maven-central/v/io.github.jinahya/temporal-tiler)](https://central.sonatype.com/artifact/io.github.jinahya/temporal-tiler)
 
 A Java library for decomposing temporal ranges into boundary-aligned tiles at a single grain level.
