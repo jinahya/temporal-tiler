@@ -155,6 +155,7 @@ final class TemporalTilerConstants {
         SUB_PATHS = Collections.unmodifiableMap(subPaths);
     }
 
+    /** Prevents instantiation. */
     private TemporalTilerConstants() {
         throw new AssertionError("instantiation is not allowed");
     }

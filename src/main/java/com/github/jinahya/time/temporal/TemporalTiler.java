@@ -52,24 +52,24 @@ public final class TemporalTiler<T extends Temporal & Comparable<? super T>> {
      * @return a new tiler for the specified grain
      * @throws NullPointerException if {@code grain} is {@code null}
      */
-    public static <T extends Temporal & Comparable<? super T>> TemporalTiler<T> of(
-            final ChronoUnit grain) {
+    public static <T extends Temporal & Comparable<? super T>> TemporalTiler<T> of(final ChronoUnit grain) {
         Objects.requireNonNull(grain, "grain is null");
         return new TemporalTiler<>(grain);
     }
 
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Creates a new tiler with the specified grain.
+     *
+     * @param grain the grain unit
+     */
     private TemporalTiler(final ChronoUnit grain) {
+        super();
         this.grain = grain;
     }
 
-    /**
-     * Returns the {@link ChronoUnit} grain of this tiler.
-     *
-     * @return the grain of this tiler
-     */
-    public ChronoUnit getGrain() {
-        return grain;
-    }
+    // -----------------------------------------------------------------------------------------------------------------
 
     /**
      * Partitions the half-open range {@code [startInclusive, endExclusive)} into tiles at this tiler's grain.
@@ -87,9 +87,7 @@ public final class TemporalTiler<T extends Temporal & Comparable<? super T>> {
      * @throws NullPointerException          if {@code startInclusive} or {@code endExclusive} is {@code null}
      * @throws UnsupportedOperationException if the grain is not supported by the temporal type
      */
-    @SuppressWarnings("unchecked")
-    public List<TemporalTile<T>> tile(final T startInclusive,
-                                      final T endExclusive) {
+    public List<TemporalTile<T>> tile(final T startInclusive, final T endExclusive) {
         Objects.requireNonNull(startInclusive, "startInclusive is null");
         Objects.requireNonNull(endExclusive, "endExclusive is null");
         if (startInclusive.compareTo(endExclusive) >= 0) {
@@ -136,6 +134,9 @@ public final class TemporalTiler<T extends Temporal & Comparable<? super T>> {
      * <p>For time-based units (NANOS through HALF_DAYS), uses {@link ChronoField#NANO_OF_DAY}
      * with modular arithmetic to zero out sub-fields in one operation. For date-based units, snaps to the start of the
      * period (e.g., 1st of month for MONTHS).
+     *
+     * @param value the temporal value to truncate
+     * @return the grain boundary at or before {@code value}
      */
     @SuppressWarnings("unchecked")
     private T truncate(final T value) {
@@ -179,5 +180,20 @@ public final class TemporalTiler<T extends Temporal & Comparable<? super T>> {
     }
 
     // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Returns the {@link ChronoUnit} grain of this tiler.
+     *
+     * @return the grain of this tiler
+     */
+    public ChronoUnit getGrain() {
+        return grain;
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * The grain unit for this tiler.
+     */
     private final ChronoUnit grain;
 }

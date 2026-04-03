@@ -1,5 +1,7 @@
 package com.github.jinahya.time.temporal;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 
@@ -16,15 +18,31 @@ import java.time.temporal.Temporal;
  *            {@link java.time.Instant})
  * @see TemporalTiler
  */
-public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
+public final class TemporalTile<T extends Temporal & Comparable<? super T>>
+        implements Serializable {
 
-    TemporalTile(final T startInclusive, final T endExclusive,
-                 final ChronoUnit grain, final boolean aligned) {
+    @Serial
+    private static final long serialVersionUID = -2680380686049055769L;
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Creates a new tile.
+     *
+     * @param startInclusive the inclusive start of the range
+     * @param endExclusive   the exclusive end of the range
+     * @param grain          the grain unit
+     * @param aligned        whether this tile is boundary-aligned
+     */
+    TemporalTile(final T startInclusive, final T endExclusive, final ChronoUnit grain, final boolean aligned) {
+        super();
         this.startInclusive = startInclusive;
         this.endExclusive = endExclusive;
         this.grain = grain;
         this.aligned = aligned;
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     /**
      * Returns the inclusive start of this tile's range.
@@ -65,11 +83,25 @@ public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
         return aligned;
     }
 
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * The inclusive start of this tile's range.
+     */
     private final T startInclusive;
 
+    /**
+     * The exclusive end of this tile's range.
+     */
     private final T endExclusive;
 
+    /**
+     * The grain unit of this tile.
+     */
     private final ChronoUnit grain;
 
+    /**
+     * Whether this tile is boundary-aligned.
+     */
     private final boolean aligned;
 }

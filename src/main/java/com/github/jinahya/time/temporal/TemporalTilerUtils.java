@@ -154,6 +154,7 @@ final class TemporalTilerUtils {
         return true;
     }
 
+    /** Prevents instantiation. */
     private TemporalTilerUtils() {
         throw new AssertionError("instantiation is not allowed");
     }
