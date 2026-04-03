@@ -1,5 +1,9 @@
 # temporal-tiler
 
+[![Java CI with Maven](https://github.com/jinahya/temporal-tiler/actions/workflows/maven.yml/badge.svg)](https://github.com/jinahya/temporal-tiler/actions/workflows/maven.yml)
+![Maven Central Version](https://img.shields.io/maven-central/v/io.github.jinahya/temporal-tile)
+
+
 A Java library for decomposing temporal ranges into boundary-aligned tiles at a single grain level.
 
 ## Purpose
