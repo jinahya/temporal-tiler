@@ -11,7 +11,7 @@
   </parent>
 
   <groupId>com.github.jinahya</groupId>
-  <artifactId>temporal-slicer</artifactId>
+  <artifactId>temporal-tiler</artifactId>
   <version>0.1.0-SNAPSHOT</version>
 
   <name>${project.artifactId}</name>
@@ -20,8 +20,12 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
+    <maven.compiler.release>${maven.compiler.target}</maven.compiler.release>
+    <maven.compiler.testSource>${maven.compiler.source}</maven.compiler.testSource>
+    <maven.compiler.testTarget>${maven.compiler.testSource}</maven.compiler.testTarget>
+    <maven.compiler.testRelease>${maven.compiler.testTarget}</maven.compiler.testRelease>
     <version.org.apache.maven.surefire>2.22.0</version.org.apache.maven.surefire>
     <version.org.junit.jupiter>5.2.0</version.org.junit.jupiter>
     <version.org.junit.platform>1.2.0</version.org.junit.platform>
@@ -56,6 +60,12 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>${version.org.junit.jupiter}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.44</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
