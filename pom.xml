@@ -11,13 +11,13 @@
 
   <groupId>io.github.jinahya</groupId>
   <artifactId>temporal-tiler</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3-SNAPSHOT</version>
 
   <name>${project.artifactId}</name>
   <url>https://github.com/jinahya/temporal-slicer</url>
 
   <scm>
-    <tag>0.0.2</tag>
+    <tag>0.0.1</tag>
   </scm>
 
   <properties>
