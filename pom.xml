@@ -31,6 +31,7 @@
     <maven.compiler.testRelease>${maven.compiler.testTarget}</maven.compiler.testRelease>
     <version.org.apache.maven.failsafe>${version.org.apache.maven.surefire}</version.org.apache.maven.failsafe>
     <version.org.apache.maven.surefire>3.5.5</version.org.apache.maven.surefire>
+    <version.org.jacoco>0.8.14</version.org.jacoco>
     <!-- https://central.sonatype.com/artifact/org.junit/junit-bom/versions -->
     <version.org.junit>6.0.3</version.org.junit>
   </properties>
@@ -105,9 +106,32 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${version.org.apache.maven.surefire}</version>
         </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${version.org.jacoco}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
