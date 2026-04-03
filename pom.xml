@@ -29,6 +29,7 @@
     <maven.compiler.testSource>${maven.compiler.source}</maven.compiler.testSource>
     <maven.compiler.testTarget>${maven.compiler.testSource}</maven.compiler.testTarget>
     <maven.compiler.testRelease>${maven.compiler.testTarget}</maven.compiler.testRelease>
+    <sonar.organization>jinahya-github</sonar.organization>
     <version.org.apache.maven.failsafe>${version.org.apache.maven.surefire}</version.org.apache.maven.failsafe>
     <version.org.apache.maven.surefire>3.5.5</version.org.apache.maven.surefire>
     <version.org.jacoco>0.8.14</version.org.jacoco>
