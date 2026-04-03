@@ -9,16 +9,12 @@
     <version>1.0.3</version>
   </parent>
 
-  <groupId>com.github.jinahya</groupId>
+  <groupId>io.github.jinahya</groupId>
   <artifactId>temporal-tiler</artifactId>
   <version>0.0.2-SNAPSHOT</version>
 
   <name>${project.artifactId}</name>
   <url>https://github.com/jinahya/temporal-slicer</url>
-
-  <prerequisites>
-    <maven>3.0</maven>
-  </prerequisites>
 
   <scm>
     <tag>0.0.1</tag>
