@@ -10,13 +10,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TemporalTileAssert<
         T extends Temporal & Comparable<? super T> & Serializable,
-        U extends TemporalUnit & Serializable
+        U extends TemporalUnit
         >
         extends AbstractAssert<TemporalTileAssert<T, U>, TemporalTile<T, U>> {
 
     static <
             T extends Temporal & Comparable<? super T> & Serializable,
-            U extends TemporalUnit & Serializable
+            U extends TemporalUnit
             >
     TemporalTileAssert<T, U> assertTile(final TemporalTile<T, U> actual) {
         return new TemporalTileAssert<>(actual);

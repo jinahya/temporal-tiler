@@ -14,7 +14,9 @@ import java.time.temporal.Temporal;
  *            {@link java.time.Instant})
  * @see ChronoTiler
  */
-public final class ChronoTile<T extends Temporal & Comparable<? super T> & Serializable>
+public final class ChronoTile<
+        T extends Temporal & Comparable<? super T> & Serializable
+        >
         extends TemporalTile<T, ChronoUnit> {
 
     @Serial

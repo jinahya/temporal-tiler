@@ -19,39 +19,11 @@ import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTil
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link ChronoTiler} tiling via {@link TemporalTiler#tile()}, which decomposes a half-open temporal range
- * {@code [start, end)} into a list of non-overlapping, gap-free {@link ChronoTile}s at a single {@link ChronoUnit}
- * grain.
- *
- * <p>The test class is organized into {@link Nested} inner classes by temporal type:
- * <ul>
- *     <li>{@link LocalTimeTest} &mdash; time-only tiling with {@link LocalTime} ({@code HOURS}, {@code MINUTES})</li>
- *     <li>{@link LocalDateTest} &mdash; date-only tiling with {@link LocalDate}
- *         ({@code DAYS}, {@code WEEKS}, {@code MONTHS}, {@code YEARS})</li>
- *     <li>{@link LocalDateTimeTest} &mdash; date-time tiling with {@link LocalDateTime}
- *         ({@code MINUTES}, {@code HOURS}, {@code DAYS}, {@code MONTHS})</li>
- *     <li>{@link OffsetDateTimeTest} &mdash; offset-aware tiling with {@link OffsetDateTime}
- *         ({@code HOURS}, {@code DAYS}, {@code MONTHS})</li>
- *     <li>{@link ZonedDateTimeTest} &mdash; zone-aware tiling with {@link ZonedDateTime}
- *         ({@code HOURS}, {@code DAYS}, {@code MONTHS})</li>
- * </ul>
- *
- * <p>Additional top-level test methods cover cross-cutting concerns such as:
- * <ul>
- *     <li>Partial head and tail tiles when the range boundaries do not align with the grain</li>
- *     <li>Fully aligned ranges where every tile is boundary-aligned</li>
- *     <li>Empty ranges ({@code start == end}) producing an empty list</li>
- *     <li>Ranges smaller than one grain unit producing a single partial tile</li>
- *     <li>Hierarchical (user-driven) tiling by chaining tilers at different grains</li>
- *     <li>Gap-free verification: the end of each tile equals the start of the next</li>
- * </ul>
- *
- * <p>Assertions on individual tiles use {@link TemporalTileAssert} for fluent, readable checks on
- * {@link TemporalTile#getStart() start}, {@link TemporalTile#getEnd() end}, and
- * {@link TemporalTile#isAligned() alignment}.
+ * Tests for {@link ChronoTiler#tile(java.time.temporal.Temporal, java.time.temporal.Temporal, ChronoUnit)}, which
+ * decomposes a half-open temporal range {@code [start, end)} into a list of non-overlapping, gap-free
+ * {@link TemporalTile}s at a single {@link ChronoUnit} grain.
  *
  * @see ChronoTiler
- * @see ChronoTile
  * @see TemporalTileAssert
  */
 @Slf4j
@@ -63,18 +35,14 @@ class Chrono_Tile_Test {
 
         @Test
         void _MINUTES_() {
-            // --------------------------------------------------------------------------------------------------- given
             final var grain = ChronoUnit.MINUTES;
             final var start = LocalTime.now();
             final var end = start.plusNanos(
                     ThreadLocalRandom.current().nextLong()
-                    & 3_600_000_000_000L //  1 hour
-                    | 600_000_000_000L   // 10 minute
+                    & 3_600_000_000_000L
+                    | 600_000_000_000L
             );
-            // ---------------------------------------------------------------------------------------------------- when
-            final var tiles = new ChronoTiler.Builder<LocalTime>()
-                    .start(start).end(end).grain(grain)
-                    .build().tile();
+            final var tiles = ChronoTiler.tile(start, end, grain);
             tiles.forEach(t -> {
                 log.debug("tile: {}", t);
             });
@@ -87,22 +55,15 @@ class Chrono_Tile_Test {
 
         @Test
         void _HOURS_() {
-            // --------------------------------------------------------------------------------------------------- given
             final var grain = ChronoUnit.HOURS;
             final var start = LocalTime.now();
             final var end =
                     start.plusNanos(
                             ThreadLocalRandom.current().nextLong()
-                            & 86_400_000_000_000L // 24 hours
-                            | 10_800_000_000_000L //  3 hours
+                            & 86_400_000_000_000L
+                            | 10_800_000_000_000L
                     );
-            // ---------------------------------------------------------------------------------------------------- when
-            final var tiles = new ChronoTiler.Builder<LocalTime>()
-                    .start(start)
-                    .end(end)
-                    .grain(grain)
-                    .build()
-                    .tile();
+            final var tiles = ChronoTiler.tile(start, end, grain);
             tiles.forEach(t -> {
                 log.debug("tile: {}", t);
             });
@@ -111,18 +72,9 @@ class Chrono_Tile_Test {
         @DisplayName("[14:30, 17:45) by HOURS")
         @Test
         void _Hours_PartialHeadAndTail() {
-            // --------------------------------------------------------------------------------------------------- given
-            final var grain = ChronoUnit.HOURS;
             final var start = LocalTime.of(14, 30);
             final var end = LocalTime.of(17, 45);
-            // ---------------------------------------------------------------------------------------------------- when
-            final var tiles = new ChronoTiler.Builder<LocalTime>()
-                    .start(start)
-                    .end(end)
-                    .grain(grain)
-                    .build()
-                    .tile();
-            // ---------------------------------------------------------------------------------------------------- then
+            final var tiles = ChronoTiler.tile(start, end, ChronoUnit.HOURS);
             assertThat(tiles)
                     .hasSize(4)
                     .extracting(TemporalTile::getGrain).containsOnly(ChronoUnit.HOURS);
@@ -149,45 +101,31 @@ class Chrono_Tile_Test {
 
         @Test
         void _Hours_AllAligned() {
-            // [10:00, 13:00) by HOURS
-            var tiles = new ChronoTiler.Builder<LocalTime>()
-                    .start(LocalTime.of(10, 0)).end(LocalTime.of(13, 0)).grain(ChronoUnit.HOURS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(LocalTime.of(10, 0), LocalTime.of(13, 0), ChronoUnit.HOURS);
             assertThat(tiles).hasSize(3);
             assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
         }
 
         @Test
         void _Minutes_PartialHeadAndTail() {
-            // [10:15:30, 10:18:20) by MINUTES
-            var tiles = new ChronoTiler.Builder<LocalTime>()
-                    .start(LocalTime.of(10, 15, 30)).end(LocalTime.of(10, 18, 20)).grain(ChronoUnit.MINUTES)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(LocalTime.of(10, 15, 30), LocalTime.of(10, 18, 20), ChronoUnit.MINUTES);
             assertThat(tiles).hasSize(4);
-            // Head partial: [10:15:30, 10:16:00)
             assertTile(tiles.getFirst()).isNotAligned();
-            // Full minutes: [10:16, 10:17), [10:17, 10:18)
             assertTile(tiles.get(1)).isAligned();
             assertTile(tiles.get(2)).isAligned();
-            // Tail partial: [10:18:00, 10:18:20)
             assertTile(tiles.getLast()).isNotAligned();
         }
 
         @Test
         void _EmptyRange() {
             var time = LocalTime.of(12, 0);
-            var tiles = new ChronoTiler.Builder<LocalTime>()
-                    .start(time).end(time).grain(ChronoUnit.HOURS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(time, time, ChronoUnit.HOURS);
             assertThat(tiles).isEmpty();
         }
 
         @Test
         void _SmallerThanGrain() {
-            // [10:15, 10:45) by HOURS — smaller than one hour
-            var tiles = new ChronoTiler.Builder<LocalTime>()
-                    .start(LocalTime.of(10, 15)).end(LocalTime.of(10, 45)).grain(ChronoUnit.HOURS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(LocalTime.of(10, 15), LocalTime.of(10, 45), ChronoUnit.HOURS);
             assertThat(tiles).hasSize(1);
             assertTile(tiles.getFirst())
                     .hasStart(LocalTime.of(10, 15))
@@ -201,20 +139,14 @@ class Chrono_Tile_Test {
 
         @Test
         void _Months_PartialHeadAndTail() {
-            // [Mar 15, Jun 10) by MONTHS
-            var tiles = new ChronoTiler.Builder<LocalDate>()
-                    .start(LocalDate.of(2025, 3, 15)).end(LocalDate.of(2025, 6, 10)).grain(ChronoUnit.MONTHS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 6, 10), ChronoUnit.MONTHS);
             assertThat(tiles).hasSize(4);
-            // Head partial: [Mar 15, Apr 1)
             assertTile(tiles.getFirst())
                     .hasStart(LocalDate.of(2025, 3, 15))
                     .hasEnd(LocalDate.of(2025, 4, 1))
                     .isNotAligned();
-            // Full months: [Apr 1, May 1), [May 1, Jun 1)
             assertTile(tiles.get(1)).isAligned();
             assertTile(tiles.get(2)).isAligned();
-            // Tail partial: [Jun 1, Jun 10)
             assertTile(tiles.getLast())
                     .hasStart(LocalDate.of(2025, 6, 1))
                     .hasEnd(LocalDate.of(2025, 6, 10))
@@ -223,61 +155,42 @@ class Chrono_Tile_Test {
 
         @Test
         void _Days_AllAligned() {
-            // [Mar 15, Mar 18) by DAYS — LocalDate days are always aligned
-            var tiles = new ChronoTiler.Builder<LocalDate>()
-                    .start(LocalDate.of(2025, 3, 15)).end(LocalDate.of(2025, 3, 18)).grain(ChronoUnit.DAYS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 18), ChronoUnit.DAYS);
             assertThat(tiles).hasSize(3);
             assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
         }
 
         @Test
         void _Years_PartialHeadAndTail() {
-            var tiles = new ChronoTiler.Builder<LocalDate>()
-                    .start(LocalDate.of(2025, 3, 15)).end(LocalDate.of(2027, 6, 10)).grain(ChronoUnit.YEARS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2027, 6, 10), ChronoUnit.YEARS);
             assertThat(tiles).hasSize(3);
-            // Head partial: [2025-03-15, 2026-01-01)
             assertTile(tiles.getFirst()).isNotAligned();
-            // Full year: [2026-01-01, 2027-01-01)
             assertTile(tiles.get(1)).isAligned();
-            // Tail partial: [2027-01-01, 2027-06-10)
             assertTile(tiles.getLast()).isNotAligned();
         }
 
         @Test
         void _Weeks_PartialHeadAndTail() {
-            // [Wed Mar 12, Thu Mar 27) by WEEKS (week starts Monday)
-            var tiles = new ChronoTiler.Builder<LocalDate>()
-                    .start(LocalDate.of(2025, 3, 12)).end(LocalDate.of(2025, 3, 27)).grain(ChronoUnit.WEEKS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 12), LocalDate.of(2025, 3, 27), ChronoUnit.WEEKS);
             assertThat(tiles).hasSize(3);
-            // Head partial: [Wed Mar 12, Mon Mar 17)
             assertTile(tiles.getFirst())
                     .hasStart(LocalDate.of(2025, 3, 12))
                     .hasEnd(LocalDate.of(2025, 3, 17))
                     .isNotAligned();
-            // Full week: [Mon Mar 17, Mon Mar 24)
             assertTile(tiles.get(1)).isAligned();
-            // Tail partial: [Mon Mar 24, Thu Mar 27)
             assertTile(tiles.getLast()).isNotAligned();
         }
 
         @Test
         void _EmptyRange() {
             var date = LocalDate.of(2025, 3, 15);
-            var tiles = new ChronoTiler.Builder<LocalDate>()
-                    .start(date).end(date).grain(ChronoUnit.MONTHS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(date, date, ChronoUnit.MONTHS);
             assertThat(tiles).isEmpty();
         }
 
         @Test
         void _SmallerThanGrain() {
-            // [Mar 15, Mar 20) by MONTHS — smaller than one month
-            var tiles = new ChronoTiler.Builder<LocalDate>()
-                    .start(LocalDate.of(2025, 3, 15)).end(LocalDate.of(2025, 3, 20)).grain(ChronoUnit.MONTHS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 20), ChronoUnit.MONTHS);
             assertThat(tiles).hasSize(1);
             assertTile(tiles.getFirst()).isNotAligned();
         }
@@ -286,9 +199,7 @@ class Chrono_Tile_Test {
         void _GapFree() {
             var start = LocalDate.of(2025, 3, 15);
             var end = LocalDate.of(2025, 8, 22);
-            var tiles = new ChronoTiler.Builder<LocalDate>()
-                    .start(start).end(end).grain(ChronoUnit.MONTHS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(start, end, ChronoUnit.MONTHS);
             assertThat(tiles.getFirst().getStart()).isEqualTo(start);
             assertThat(tiles.getLast().getEnd()).isEqualTo(end);
             for (int i = 0; i < tiles.size() - 1; i++) {
@@ -302,22 +213,17 @@ class Chrono_Tile_Test {
 
         @Test
         void _Hours_PartialHeadAndTail() {
-            // [14:30, 17:30) by HOURS
-            var tiles = new ChronoTiler.Builder<LocalDateTime>()
-                    .start(LocalDateTime.of(2025, 3, 15, 14, 30))
-                    .end(LocalDateTime.of(2025, 3, 15, 17, 30))
-                    .grain(ChronoUnit.HOURS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    LocalDateTime.of(2025, 3, 15, 14, 30),
+                    LocalDateTime.of(2025, 3, 15, 17, 30),
+                    ChronoUnit.HOURS);
             assertThat(tiles).hasSize(4);
-            // Head partial: [14:30, 15:00)
             assertTile(tiles.getFirst())
                     .hasStart(LocalDateTime.of(2025, 3, 15, 14, 30))
                     .hasEnd(LocalDateTime.of(2025, 3, 15, 15, 0))
                     .isNotAligned();
-            // Full hours: [15:00, 16:00), [16:00, 17:00)
             assertTile(tiles.get(1)).isAligned();
             assertTile(tiles.get(2)).isAligned();
-            // Tail partial: [17:00, 17:30)
             assertTile(tiles.getLast())
                     .hasStart(LocalDateTime.of(2025, 3, 15, 17, 0))
                     .hasEnd(LocalDateTime.of(2025, 3, 15, 17, 30))
@@ -326,49 +232,38 @@ class Chrono_Tile_Test {
 
         @Test
         void _Days_PartialHeadAndTail() {
-            // [Mar 15 10:00, Mar 18 14:00) by DAYS
-            var tiles = new ChronoTiler.Builder<LocalDateTime>()
-                    .start(LocalDateTime.of(2025, 3, 15, 10, 0))
-                    .end(LocalDateTime.of(2025, 3, 18, 14, 0))
-                    .grain(ChronoUnit.DAYS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    LocalDateTime.of(2025, 3, 15, 10, 0),
+                    LocalDateTime.of(2025, 3, 18, 14, 0),
+                    ChronoUnit.DAYS);
             assertThat(tiles).hasSize(4);
-            // Head partial: [Mar 15 10:00, Mar 16 00:00)
             assertTile(tiles.getFirst())
                     .hasStart(LocalDateTime.of(2025, 3, 15, 10, 0))
                     .hasEnd(LocalDateTime.of(2025, 3, 16, 0, 0))
                     .isNotAligned();
-            // Full days: [Mar 16, Mar 17), [Mar 17, Mar 18)
             assertTile(tiles.get(1)).isAligned();
             assertTile(tiles.get(2)).isAligned();
-            // Tail partial: [Mar 18 00:00, Mar 18 14:00)
             assertTile(tiles.getLast()).isNotAligned();
         }
 
         @Test
         void _Months_AllAligned() {
-            // [Apr 1 00:00, Jul 1 00:00) by MONTHS
-            var tiles = new ChronoTiler.Builder<LocalDateTime>()
-                    .start(LocalDateTime.of(2025, 4, 1, 0, 0))
-                    .end(LocalDateTime.of(2025, 7, 1, 0, 0))
-                    .grain(ChronoUnit.MONTHS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    LocalDateTime.of(2025, 4, 1, 0, 0),
+                    LocalDateTime.of(2025, 7, 1, 0, 0),
+                    ChronoUnit.MONTHS);
             assertThat(tiles).hasSize(3);
             assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
         }
 
         @Test
         void _Minutes_PartialHead() {
-            // [14:15:30, 14:18:00) by MINUTES
-            var tiles = new ChronoTiler.Builder<LocalDateTime>()
-                    .start(LocalDateTime.of(2025, 3, 15, 14, 15, 30))
-                    .end(LocalDateTime.of(2025, 3, 15, 14, 18, 0))
-                    .grain(ChronoUnit.MINUTES)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    LocalDateTime.of(2025, 3, 15, 14, 15, 30),
+                    LocalDateTime.of(2025, 3, 15, 14, 18, 0),
+                    ChronoUnit.MINUTES);
             assertThat(tiles).hasSize(3);
-            // Head partial: [14:15:30, 14:16:00)
             assertTile(tiles.getFirst()).isNotAligned();
-            // Full minutes: [14:16, 14:17), [14:17, 14:18)
             assertTile(tiles.get(1)).isAligned();
             assertTile(tiles.get(2)).isAligned();
         }
@@ -380,32 +275,27 @@ class Chrono_Tile_Test {
         @Test
         void _Hours_PartialHeadAndTail() {
             var offset = ZoneOffset.ofHours(9);
-            var tiles = new ChronoTiler.Builder<OffsetDateTime>()
-                    .start(OffsetDateTime.of(2025, 3, 15, 14, 30, 0, 0, offset))
-                    .end(OffsetDateTime.of(2025, 3, 15, 17, 15, 0, 0, offset))
-                    .grain(ChronoUnit.HOURS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    OffsetDateTime.of(2025, 3, 15, 14, 30, 0, 0, offset),
+                    OffsetDateTime.of(2025, 3, 15, 17, 15, 0, 0, offset),
+                    ChronoUnit.HOURS);
             assertThat(tiles).hasSize(4);
-            // Head partial: [14:30, 15:00)
             assertTile(tiles.getFirst())
                     .hasStart(OffsetDateTime.of(2025, 3, 15, 14, 30, 0, 0, offset))
                     .hasEnd(OffsetDateTime.of(2025, 3, 15, 15, 0, 0, 0, offset))
                     .isNotAligned();
-            // Full hours: [15:00, 16:00), [16:00, 17:00)
             assertTile(tiles.get(1)).isAligned();
             assertTile(tiles.get(2)).isAligned();
-            // Tail partial: [17:00, 17:15)
             assertTile(tiles.getLast()).isNotAligned();
         }
 
         @Test
         void _Days_AllAligned() {
             var offset = ZoneOffset.UTC;
-            var tiles = new ChronoTiler.Builder<OffsetDateTime>()
-                    .start(OffsetDateTime.of(2025, 3, 15, 0, 0, 0, 0, offset))
-                    .end(OffsetDateTime.of(2025, 3, 18, 0, 0, 0, 0, offset))
-                    .grain(ChronoUnit.DAYS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    OffsetDateTime.of(2025, 3, 15, 0, 0, 0, 0, offset),
+                    OffsetDateTime.of(2025, 3, 18, 0, 0, 0, 0, offset),
+                    ChronoUnit.DAYS);
             assertThat(tiles).hasSize(3);
             assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
         }
@@ -413,11 +303,10 @@ class Chrono_Tile_Test {
         @Test
         void _Months_PartialHeadAndTail() {
             var offset = ZoneOffset.ofHours(-5);
-            var tiles = new ChronoTiler.Builder<OffsetDateTime>()
-                    .start(OffsetDateTime.of(2025, 3, 15, 0, 0, 0, 0, offset))
-                    .end(OffsetDateTime.of(2025, 6, 10, 0, 0, 0, 0, offset))
-                    .grain(ChronoUnit.MONTHS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    OffsetDateTime.of(2025, 3, 15, 0, 0, 0, 0, offset),
+                    OffsetDateTime.of(2025, 6, 10, 0, 0, 0, 0, offset),
+                    ChronoUnit.MONTHS);
             assertThat(tiles).hasSize(4);
             assertTile(tiles.getFirst()).isNotAligned();
             assertTile(tiles.get(1)).isAligned();
@@ -432,33 +321,26 @@ class Chrono_Tile_Test {
         @Test
         void _Hours_PartialHeadAndTail() {
             var zone = ZoneId.of("America/New_York");
-            var tiles = new ChronoTiler.Builder<ZonedDateTime>()
-                    .start(ZonedDateTime.of(2025, 3, 15, 14, 30, 0, 0, zone))
-                    .end(ZonedDateTime.of(2025, 3, 15, 17, 45, 0, 0, zone))
-                    .grain(ChronoUnit.HOURS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    ZonedDateTime.of(2025, 3, 15, 14, 30, 0, 0, zone),
+                    ZonedDateTime.of(2025, 3, 15, 17, 45, 0, 0, zone),
+                    ChronoUnit.HOURS);
             assertThat(tiles).hasSize(4);
-            // Head partial: [14:30, 15:00)
             assertTile(tiles.getFirst()).isNotAligned();
-            // Full hours: [15:00, 16:00), [16:00, 17:00)
             assertTile(tiles.get(1)).isAligned();
             assertTile(tiles.get(2)).isAligned();
-            // Tail partial: [17:00, 17:45)
             assertTile(tiles.getLast()).isNotAligned();
         }
 
         @Test
         void _Days_PartialHead() {
             var zone = ZoneId.of("Europe/London");
-            var tiles = new ChronoTiler.Builder<ZonedDateTime>()
-                    .start(ZonedDateTime.of(2025, 3, 15, 10, 0, 0, 0, zone))
-                    .end(ZonedDateTime.of(2025, 3, 18, 0, 0, 0, 0, zone))
-                    .grain(ChronoUnit.DAYS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    ZonedDateTime.of(2025, 3, 15, 10, 0, 0, 0, zone),
+                    ZonedDateTime.of(2025, 3, 18, 0, 0, 0, 0, zone),
+                    ChronoUnit.DAYS);
             assertThat(tiles).hasSize(3);
-            // Head partial: [Mar 15 10:00, Mar 16 00:00)
             assertTile(tiles.getFirst()).isNotAligned();
-            // Full days: [Mar 16, Mar 17), [Mar 17, Mar 18)
             assertTile(tiles.get(1)).isAligned();
             assertTile(tiles.get(2)).isAligned();
         }
@@ -466,11 +348,10 @@ class Chrono_Tile_Test {
         @Test
         void _Months_AllAligned() {
             var zone = ZoneId.of("Asia/Tokyo");
-            var tiles = new ChronoTiler.Builder<ZonedDateTime>()
-                    .start(ZonedDateTime.of(2025, 4, 1, 0, 0, 0, 0, zone))
-                    .end(ZonedDateTime.of(2025, 7, 1, 0, 0, 0, 0, zone))
-                    .grain(ChronoUnit.MONTHS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(
+                    ZonedDateTime.of(2025, 4, 1, 0, 0, 0, 0, zone),
+                    ZonedDateTime.of(2025, 7, 1, 0, 0, 0, 0, zone),
+                    ChronoUnit.MONTHS);
             assertThat(tiles).hasSize(3);
             assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
         }
@@ -479,36 +360,27 @@ class Chrono_Tile_Test {
         void _EmptyRange() {
             var zone = ZoneId.of("UTC");
             var zdt = ZonedDateTime.of(2025, 3, 15, 12, 0, 0, 0, zone);
-            var tiles = new ChronoTiler.Builder<ZonedDateTime>()
-                    .start(zdt).end(zdt).grain(ChronoUnit.HOURS)
-                    .build().tile();
+            var tiles = ChronoTiler.tile(zdt, zdt, ChronoUnit.HOURS);
             assertThat(tiles).isEmpty();
         }
     }
 
     @Test
     void _Months_PartialHeadAndTail() {
-        // [Mar 15, Jun 10) by MONTHS
-        var tiles = new ChronoTiler.Builder<LocalDate>()
-                .start(LocalDate.of(2025, 3, 15)).end(LocalDate.of(2025, 6, 10)).grain(ChronoUnit.MONTHS)
-                .build().tile();
+        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 6, 10), ChronoUnit.MONTHS);
         assertThat(tiles).hasSize(4);
-        // Head partial: [Mar 15, Apr 1)
         assertTile(tiles.getFirst())
                 .hasStart(LocalDate.of(2025, 3, 15))
                 .hasEnd(LocalDate.of(2025, 4, 1))
                 .isNotAligned();
-        // Full month: [Apr 1, May 1)
         assertTile(tiles.get(1))
                 .hasStart(LocalDate.of(2025, 4, 1))
                 .hasEnd(LocalDate.of(2025, 5, 1))
                 .isAligned();
-        // Full month: [May 1, Jun 1)
         assertTile(tiles.get(2))
                 .hasStart(LocalDate.of(2025, 5, 1))
                 .hasEnd(LocalDate.of(2025, 6, 1))
                 .isAligned();
-        // Tail partial: [Jun 1, Jun 10)
         assertTile(tiles.getLast())
                 .hasStart(LocalDate.of(2025, 6, 1))
                 .hasEnd(LocalDate.of(2025, 6, 10))
@@ -517,32 +389,23 @@ class Chrono_Tile_Test {
 
     @Test
     void _Months_AlignedStartAndEnd() {
-        // [Apr 1, Jul 1) by MONTHS — perfectly aligned
-        var tiles = new ChronoTiler.Builder<LocalDate>()
-                .start(LocalDate.of(2025, 4, 1)).end(LocalDate.of(2025, 7, 1)).grain(ChronoUnit.MONTHS)
-                .build().tile();
+        var tiles = ChronoTiler.tile(LocalDate.of(2025, 4, 1), LocalDate.of(2025, 7, 1), ChronoUnit.MONTHS);
         assertThat(tiles).hasSize(3);
         assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
     }
 
     @Test
     void _Years_PartialHeadAndTail() {
-        // [Mar 15, Jun 10 next year) by YEARS
-        var tiles = new ChronoTiler.Builder<LocalDate>()
-                .start(LocalDate.of(2025, 3, 15)).end(LocalDate.of(2027, 6, 10)).grain(ChronoUnit.YEARS)
-                .build().tile();
+        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2027, 6, 10), ChronoUnit.YEARS);
         assertThat(tiles).hasSize(3);
-        // Head partial: [2025-03-15, 2026-01-01)
         assertTile(tiles.getFirst())
                 .hasStart(LocalDate.of(2025, 3, 15))
                 .hasEnd(LocalDate.of(2026, 1, 1))
                 .isNotAligned();
-        // Full year: [2026-01-01, 2027-01-01)
         assertTile(tiles.get(1))
                 .hasStart(LocalDate.of(2026, 1, 1))
                 .hasEnd(LocalDate.of(2027, 1, 1))
                 .isAligned();
-        // Tail partial: [2027-01-01, 2027-06-10)
         assertTile(tiles.getLast())
                 .hasStart(LocalDate.of(2027, 1, 1))
                 .hasEnd(LocalDate.of(2027, 6, 10))
@@ -551,10 +414,7 @@ class Chrono_Tile_Test {
 
     @Test
     void _Days_AllAligned() {
-        // [Mar 15, Mar 18) by DAYS
-        var tiles = new ChronoTiler.Builder<LocalDate>()
-                .start(LocalDate.of(2025, 3, 15)).end(LocalDate.of(2025, 3, 18)).grain(ChronoUnit.DAYS)
-                .build().tile();
+        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 18), ChronoUnit.DAYS);
         assertThat(tiles).hasSize(3);
         assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
         assertTile(tiles.getFirst())
@@ -564,38 +424,28 @@ class Chrono_Tile_Test {
 
     @Test
     void _Hours_PartialHead() {
-        // [14:30, 17:00) by HOURS
-        var tiles = new ChronoTiler.Builder<LocalDateTime>()
-                .start(LocalDateTime.of(2025, 3, 15, 14, 30))
-                .end(LocalDateTime.of(2025, 3, 15, 17, 0))
-                .grain(ChronoUnit.HOURS)
-                .build().tile();
+        var tiles = ChronoTiler.tile(
+                LocalDateTime.of(2025, 3, 15, 14, 30),
+                LocalDateTime.of(2025, 3, 15, 17, 0),
+                ChronoUnit.HOURS);
         assertThat(tiles).hasSize(3);
-        // Head partial: [14:30, 15:00)
         assertTile(tiles.getFirst())
                 .hasStart(LocalDateTime.of(2025, 3, 15, 14, 30))
                 .hasEnd(LocalDateTime.of(2025, 3, 15, 15, 0))
                 .isNotAligned();
-        // Full hour: [15:00, 16:00)
         assertTile(tiles.get(1)).isAligned();
-        // Full hour: [16:00, 17:00)
         assertTile(tiles.get(2)).isAligned();
     }
 
     @Test
     void _EmptyRange() {
-        var tiles = new ChronoTiler.Builder<LocalDate>()
-                .start(LocalDate.of(2025, 3, 15)).end(LocalDate.of(2025, 3, 15)).grain(ChronoUnit.MONTHS)
-                .build().tile();
+        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 15), ChronoUnit.MONTHS);
         assertThat(tiles).isEmpty();
     }
 
     @Test
     void _SmallerThanGrain() {
-        // [Mar 15, Mar 20) by MONTHS — smaller than one month
-        var tiles = new ChronoTiler.Builder<LocalDate>()
-                .start(LocalDate.of(2025, 3, 15)).end(LocalDate.of(2025, 3, 20)).grain(ChronoUnit.MONTHS)
-                .build().tile();
+        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 20), ChronoUnit.MONTHS);
         assertThat(tiles).hasSize(1);
         assertTile(tiles.getFirst())
                 .hasStart(LocalDate.of(2025, 3, 15))
@@ -605,37 +455,27 @@ class Chrono_Tile_Test {
 
     @Test
     void _Hierarchical_UserDriven() {
-        // Year → Month chaining
         var start = LocalDate.of(2025, 3, 15);
         var end = LocalDate.of(2027, 6, 10);
 
-        var yearTiles = new ChronoTiler.Builder<LocalDate>()
-                .start(start).end(end).grain(ChronoUnit.YEARS)
-                .build().tile();
-        assertThat(yearTiles).hasSize(3); // head partial, full 2026, tail partial
+        var yearTiles = ChronoTiler.tile(start, end, ChronoUnit.YEARS);
+        assertThat(yearTiles).hasSize(3);
 
-        // Decompose the head partial year into months
-        var headMonths = new ChronoTiler.Builder<LocalDate>()
-                .start(yearTiles.getFirst().getStart())
-                .end(yearTiles.getFirst().getEnd())
-                .grain(ChronoUnit.MONTHS)
-                .build().tile();
+        var headMonths = ChronoTiler.tile(
+                yearTiles.getFirst().getStart(),
+                yearTiles.getFirst().getEnd(),
+                ChronoUnit.MONTHS);
 
-        // Head partial year [2025-03-15, 2026-01-01) should have:
-        // partial March, full Apr-Dec = 1 partial + 9 full = 10 tiles
         assertThat(headMonths).hasSize(10);
-        assertTile(headMonths.getFirst()).isNotAligned(); // partial March
-        assertTile(headMonths.get(1)).isAligned();       // full April
+        assertTile(headMonths.getFirst()).isNotAligned();
+        assertTile(headMonths.get(1)).isAligned();
     }
 
     @Test
     void _GapFree() {
-        // Verify tiles cover the entire range with no gaps
         var start = LocalDate.of(2025, 3, 15);
         var end = LocalDate.of(2025, 8, 22);
-        var tiles = new ChronoTiler.Builder<LocalDate>()
-                .start(start).end(end).grain(ChronoUnit.MONTHS)
-                .build().tile();
+        var tiles = ChronoTiler.tile(start, end, ChronoUnit.MONTHS);
         assertThat(tiles.getFirst().getStart()).isEqualTo(start);
         assertThat(tiles.getLast().getEnd()).isEqualTo(end);
         for (int i = 0; i < tiles.size() - 1; i++) {

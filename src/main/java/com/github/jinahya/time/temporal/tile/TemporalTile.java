@@ -12,15 +12,16 @@ import java.util.Objects;
  * <p>A tile is either <em>boundary-aligned</em> (its start and end both fall on natural grain boundaries, spanning
  * exactly one full grain) or <em>partial</em> (a head or tail fragment that does not span a full grain).
  *
- * <p>Instances are created by {@link TemporalTiler#tile()} and are immutable.
- *
  * @param <T> the temporal type (e.g., {@link java.time.LocalDate}, {@link java.time.LocalDateTime},
  *            {@link java.time.Instant})
  * @param <U> the temporal unit type (e.g., {@link java.time.temporal.ChronoUnit})
  * @see TemporalTiler
  * @see ChronoTile
  */
-public abstract class TemporalTile<T extends Temporal & Comparable<? super T> & Serializable, U extends TemporalUnit & Serializable>
+public abstract class TemporalTile<
+        T extends Temporal & Comparable<? super T> & Serializable,
+        U extends TemporalUnit
+        >
         implements Serializable {
 
     @Serial
@@ -40,7 +41,7 @@ public abstract class TemporalTile<T extends Temporal & Comparable<? super T> & 
         super();
         this.start = Objects.requireNonNull(start, "start is null");
         this.end = Objects.requireNonNull(end, "end is null");
-        this.grain = grain;
+        this.grain = Objects.requireNonNull(grain, "grain is null");
         this.aligned = aligned;
     }
 
