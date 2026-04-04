@@ -29,6 +29,14 @@
     </license>
   </licenses>
 
+  <developers>
+    <developer>
+      <id>jinahya</id>
+      <name>Jin Kwon</name>
+      <url>https://github.com/jinahya</url>
+    </developer>
+  </developers>
+
   <scm>
     <connection>scm:git:git@github.com:jinahya/${project.artifactId}.git</connection>
     <developerConnection>scm:git:git@github.com:jinahya/${project.artifactId}.git</developerConnection>
