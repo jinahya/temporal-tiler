@@ -171,7 +171,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${version.org.apache.maven.surefire}</version>
           <configuration>
-            <argLine>@{argLine} -Xmx512m</argLine>
+            <argLine>@{argLine} -Xmx1g</argLine>
           </configuration>
         </plugin>
         <plugin>
