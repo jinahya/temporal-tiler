@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @see TemporalTileAssert
  */
 @Slf4j
-class Chrono_Tile_Test {
+class ChronoTiler_Tile_Test {
 
     @DisplayName("LocalTime")
     @Nested
