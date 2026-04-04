@@ -43,7 +43,7 @@ result:
 TemporalTiler.<LocalDate>of(ChronoUnit.MONTHS)
     .tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 6, 10))
     .forEach(tile -> System.out.printf("[%s, %s) aligned=%b%n",
-            tile.getStartInclusive(), tile.getEndExclusive(), tile.isAligned()));
+            tile.getStart(), tile.getEnd(), tile.isAligned()));
 ```
 
 ### Hierarchical: year → month → day (user-driven)
@@ -57,11 +57,11 @@ yearTiler.tile(startDate, endDate).forEach(tile -> {
     if (tile.isAligned()) {
         handleYear(tile);
     } else {
-        monthTiler.tile(tile.getStartInclusive(), tile.getEndExclusive()).forEach(mTile -> {
+        monthTiler.tile(tile.getStart(), tile.getEnd()).forEach(mTile -> {
             if (mTile.isAligned()) {
                 handleMonth(mTile);
             } else {
-                dayTiler.tile(mTile.getStartInclusive(), mTile.getEndExclusive())
+                dayTiler.tile(mTile.getStart(), mTile.getEnd())
                     .forEach(dTile -> handleDay(dTile));
             }
         });
@@ -82,8 +82,8 @@ TemporalTiler.<LocalDateTime>of(ChronoUnit.HOURS)
 ```java
 // A single tile (range + metadata)
 public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
-    T getStartInclusive();
-    T getEndExclusive();
+    T getStart();
+    T getEnd();
     ChronoUnit getGrain();
     boolean isAligned();
 }
@@ -96,7 +96,7 @@ public final class TemporalTiler<T extends Temporal & Comparable<? super T>> {
 
     ChronoUnit getGrain();
 
-    List<TemporalTile<T>> tile(T startInclusive, T endExclusive);
+    List<TemporalTile<T>> tile(T start, T end);
 }
 ```
 

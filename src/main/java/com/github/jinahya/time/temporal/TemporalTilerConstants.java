@@ -30,7 +30,7 @@ final class TemporalTilerConstants {
      * → child edge.
      *
      * <pre>{@code
-     * MILLENNIA → CENTURIES �� DECADES → YEARS → MONTHS → DAYS → HALF_DAYS → HOURS → MINUTES �� SECONDS → MILLIS → MICROS → NANOS
+     * MILLENNIA → CENTURIES → DECADES → YEARS → MONTHS → DAYS → HALF_DAYS → HOURS → MINUTES → SECONDS → MILLIS → MICROS → NANOS
      * }</pre>
      */
     static final List<ChronoUnit> MAIN_CHAIN = List.of(
@@ -57,16 +57,28 @@ final class TemporalTilerConstants {
      * chain at DAYS and continues downward.
      *
      * <pre>{@code
-     * WEEKS → DAYS → HALF_DAYS → HOURS �� ... → NANOS
+     * WEEKS → DAYS → HALF_DAYS → HOURS → ... → NANOS
      * }</pre>
      */
     static final List<ChronoUnit> WEEKS_CHAIN;
+
+    static {
+        final var daysIndex = MAIN_CHAIN.indexOf(ChronoUnit.DAYS);
+        final var weeksChain = new ArrayList<ChronoUnit>(1 + MAIN_CHAIN.size() - daysIndex);
+        weeksChain.add(ChronoUnit.WEEKS);
+        weeksChain.addAll(MAIN_CHAIN.subList(daysIndex, MAIN_CHAIN.size()));
+        WEEKS_CHAIN = List.copyOf(weeksChain);
+    }
 
     /**
      * All distinct decomposition chains. A valid ceiling→floor path must be a contiguous sub-path of exactly one of
      * these chains.
      */
     static final List<List<ChronoUnit>> ALL_CHAINS;
+
+    static {
+        ALL_CHAINS = List.of(MAIN_CHAIN, WEEKS_CHAIN);
+    }
 
     /**
      * Adjacency list: each unit maps to its valid narrower children for decomposition. Lookup returns an empty list for
@@ -91,6 +103,28 @@ final class TemporalTilerConstants {
      */
     static final Map<ChronoUnit, List<ChronoUnit>> PARENTS;
 
+    static {
+        var children = new EnumMap<ChronoUnit, List<ChronoUnit>>(ChronoUnit.class);
+        var parents = new EnumMap<ChronoUnit, List<ChronoUnit>>(ChronoUnit.class);
+        // Initialize all units with empty lists
+        for (var unit : ChronoUnit.values()) {
+            children.put(unit, List.of());
+            parents.put(unit, List.of());
+        }
+        // Main chain edges
+        for (int i = 0; i < MAIN_CHAIN.size() - 1; i++) {
+            var parent = MAIN_CHAIN.get(i);
+            var child = MAIN_CHAIN.get(i + 1);
+            children.put(parent, List.of(child));
+            parents.put(child, List.of(parent));
+        }
+        // WEEKS → DAYS: WEEKS is a second parent of DAYS
+        children.put(ChronoUnit.WEEKS, List.of(ChronoUnit.DAYS));
+        parents.put(ChronoUnit.DAYS, List.of(ChronoUnit.MONTHS, ChronoUnit.WEEKS));
+        CHILDREN = Collections.unmodifiableMap(children);
+        PARENTS = Collections.unmodifiableMap(parents);
+    }
+
     /**
      * For each {@link ChronoUnit}, the complete sub-path from that unit down to the deepest reachable unit
      * ({@link ChronoUnit#NANOS}).
@@ -106,41 +140,6 @@ final class TemporalTilerConstants {
     static final Map<ChronoUnit, List<ChronoUnit>> SUB_PATHS;
 
     static {
-        // --- WEEKS_CHAIN ---
-        var daysIndex = MAIN_CHAIN.indexOf(ChronoUnit.DAYS);
-        var weeksChain = new ArrayList<ChronoUnit>(1 + MAIN_CHAIN.size() - daysIndex);
-        weeksChain.add(ChronoUnit.WEEKS);
-        weeksChain.addAll(MAIN_CHAIN.subList(daysIndex, MAIN_CHAIN.size()));
-        WEEKS_CHAIN = List.copyOf(weeksChain);
-        ALL_CHAINS = List.of(MAIN_CHAIN, WEEKS_CHAIN);
-
-        // --- CHILDREN / PARENTS ---
-        var children = new EnumMap<ChronoUnit, List<ChronoUnit>>(ChronoUnit.class);
-        var parents = new EnumMap<ChronoUnit, List<ChronoUnit>>(ChronoUnit.class);
-
-        // Initialize all units with empty lists
-        for (var unit : ChronoUnit.values()) {
-            children.put(unit, List.of());
-            parents.put(unit, List.of());
-        }
-
-        // Main chain edges
-        for (int i = 0; i < MAIN_CHAIN.size() - 1; i++) {
-            var parent = MAIN_CHAIN.get(i);
-            var child = MAIN_CHAIN.get(i + 1);
-            children.put(parent, List.of(child));
-            parents.put(child, List.of(parent));
-        }
-
-        // WEEKS → DAYS: WEEKS is a second parent of DAYS
-        children.put(ChronoUnit.WEEKS, List.of(ChronoUnit.DAYS));
-        parents.put(ChronoUnit.DAYS, List.of(ChronoUnit.MONTHS, ChronoUnit.WEEKS));
-
-        CHILDREN = Collections.unmodifiableMap(children);
-        PARENTS = Collections.unmodifiableMap(parents);
-
-        // --- SUB_PATHS ---
-        // For each unit in each chain, the sub-path is from that unit to the end of its chain.
         var subPaths = new EnumMap<ChronoUnit, List<ChronoUnit>>(ChronoUnit.class);
         for (var unit : ChronoUnit.values()) {
             subPaths.put(unit, List.of());
@@ -151,11 +150,13 @@ final class TemporalTilerConstants {
         }
         // WEEKS chain: WEEKS maps to its full chain (DAYS onward already covered by main)
         subPaths.put(ChronoUnit.WEEKS, WEEKS_CHAIN);
-
         SUB_PATHS = Collections.unmodifiableMap(subPaths);
     }
 
-    /** Prevents instantiation. */
+    // -----------------------------------------------------------------------------------------------------------------
+    /**
+     * Prevents instantiation.
+     */
     private TemporalTilerConstants() {
         throw new AssertionError("instantiation is not allowed");
     }

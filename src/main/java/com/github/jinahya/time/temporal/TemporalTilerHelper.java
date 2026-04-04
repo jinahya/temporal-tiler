@@ -5,7 +5,9 @@ package com.github.jinahya.time.temporal;
  */
 final class TemporalTilerHelper {
 
-    /** Prevents instantiation. */
+    /**
+     * Prevents instantiation.
+     */
     private TemporalTilerHelper() {
         throw new AssertionError("instantiation is not allowed");
     }
