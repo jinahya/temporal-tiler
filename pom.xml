@@ -11,7 +11,7 @@
 
   <groupId>io.github.jinahya</groupId>
   <artifactId>temporal-tiler</artifactId>
-  <version>0.0.7</version>
+  <version>0.0.8-SNAPSHOT</version>
 
   <name>${project.artifactId}</name>
   <description>A library for tiling temporal range</description>
@@ -41,7 +41,7 @@
     <connection>scm:git:git@github.com:jinahya/${project.artifactId}.git</connection>
     <developerConnection>scm:git:git@github.com:jinahya/${project.artifactId}.git</developerConnection>
     <url>https://github.com/jinahya/${project.artifactId}</url>
-    <tag>0.0.7</tag>
+    <tag>HEAD</tag>
   </scm>
   <issueManagement>
     <system>GitHub Issues</system>
