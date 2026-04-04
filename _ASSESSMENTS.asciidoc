@@ -1,0 +1,34 @@
+= temporal-tiler Assessment
+:toc:
+:toc-placement!:
+
+toc::[]
+
+== What Works Well
+
+=== Focused scope
+Does one thing (range decomposition) and nothing else. No feature creep.
+
+=== Correct algorithm
+The truncate + iterate approach in `TemporalTiler.tile()` is sound. Half-open intervals `[start, end)` eliminate boundary ambiguity.
+
+=== Type safety
+`T extends Temporal & Comparable<? super T>` is the right constraint. Supports all major `java.time` types: `LocalTime`, `LocalDate`, `LocalDateTime`, `OffsetDateTime`, `ZonedDateTime`.
+
+=== Solid test coverage
+Tests across five temporal types with edge cases: empty ranges, smaller-than-grain, gap-free verification, hierarchical chaining. 64 tests passing.
+
+=== Clean naming
+`TemporalTile`/`TemporalTiler` for abstract bases, `ChronoTile`/`ChronoTiler` for concrete implementations. The package (`com.github.jinahya.time.temporal.tile`) provides context, so class names stay concise.
+
+== What's Questionable
+
+=== Over-abstraction for the current use case
+The `<T, U>` generics, abstract base classes, and two-level hierarchy (`TemporalTile` -> `ChronoTile`, `TemporalTiler` -> `ChronoTiler`) exist to support custom `TemporalUnit` implementations. Realistically, `ChronoUnit` covers every standard use case. There is no known custom `TemporalUnit` in the wild that this would serve. The abstraction adds API surface without a concrete second implementation to justify it.
+
+=== Builder pattern is heavyweight for what it configures
+Three required fields, all validated. A static factory `ChronoTiler.of(start, end, grain)` (which exists) does the same thing in one call. The Builder makes sense if optional parameters are planned, but right now it is ceremony.
+
+== Bottom Line
+
+The core algorithm (~50 lines in `tile()` + `truncate()`) is correct and useful. The surrounding architecture is about 3x more complex than the problem currently demands. If the goal is a focused utility library, a single concrete class with a static method would serve 99% of users better. If the goal is a framework for extensible temporal decomposition, the abstraction layer needs a real second implementation to prove its design.
