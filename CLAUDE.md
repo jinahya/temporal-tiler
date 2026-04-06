@@ -4,11 +4,11 @@ A Java library for decomposing temporal ranges into boundary-aligned tiles at a 
 
 ## Purpose
 
-Given an arbitrary half-open temporal range `[start, end)` and a `ChronoUnit` grain, produce a list of tiles
-partitioning that range. Each tile is either boundary-aligned (full grain) or partial (head/tail). The library does *
-*not** aggregate, compute, or interpret the tiles — it only decomposes.
+Given an arbitrary half-open temporal range `[start, end)` and a `TemporalUnit` grain, produce a list of tiles
+partitioning that range. Each tile is either boundary-aligned (full grain) or partial (head/tail). The library does
+**not** aggregate, compute, or interpret the tiles — it only decomposes.
 
-For hierarchical tiling (year → month → day), the user chains tilers — calling `tile()` on sub-ranges as needed.
+For hierarchical tiling (year → month → day), the user chains calls — calling `tile()` on sub-ranges as needed.
 
 ## Core Concepts
 
@@ -16,14 +16,15 @@ For hierarchical tiling (year → month → day), the user chains tilers — cal
 
 A half-open interval `[start, end)` over any `T extends Temporal & Comparable<? super T>`.
 
-- Supports `Instant`, `LocalDate`, `LocalDateTime`, `OffsetDateTime`, `ZonedDateTime`, etc.
+- Supports `LocalTime`, `LocalDate`, `LocalDateTime`, `OffsetDateTime`, `ZonedDateTime`, etc.
 - `Temporal` is required (not `TemporalAccessor`) because tiling needs `plus(long, TemporalUnit)` for boundary
   advancement.
 - `Comparable` is required for boundary ordering.
 
 ### Grain
 
-A single `ChronoUnit` that defines the tile width. The tiler partitions the range into tiles of this unit.
+A `TemporalUnit` that defines the tile width. For `ChronoUnit` grains, `TemporalTiler` provides a built-in
+convenience overload. For custom `TemporalUnit` types, the caller supplies a truncator function.
 
 ### Tiling
 
@@ -50,123 +51,55 @@ result:
 Each tile knows:
 
 - Its range: `[start, end)`
-- Its grain (`ChronoUnit`)
+- Its grain (`TemporalUnit`)
 - Whether it is boundary-aligned (full grain) or partial
 
 ### Hierarchical Tiling (User-Driven)
 
-For multi-level tiling, the user creates multiple tilers and chains them:
+For multi-level tiling, the user chains `TemporalTiler.tile()` calls:
 
 ```java
-var monthTiler = TemporalTiler.<LocalDate>of(ChronoUnit.MONTHS);
+var yearTiles = TemporalTiler.tile(startDate, endDate, ChronoUnit.YEARS);
 
-var dayTiler = TemporalTiler.<LocalDate>of(ChronoUnit.DAYS);
-
-monthTiler.
-
-tile(startDate, endDate).
-
-forEach(tile ->{
-        if(tile.
-
-isAligned()){
-
-handleMonth(tile);  // full month — user decides (cache, compute, etc.)
-    }else{
-            // Partial month — tile into days
-            dayTiler.
-
-tile(tile.getStart(),tile.
-
-getEnd())
-        .
-
-forEach(dayTile ->
-
-handleDay(dayTile));
-        }
-        });
+yearTiles.forEach(tile -> {
+    if (tile.isAligned()) {
+        handleYear(tile);
+    } else {
+        TemporalTiler.tile(tile.getStart(), tile.getEnd(), ChronoUnit.MONTHS)
+            .forEach(mTile -> {
+                if (mTile.isAligned()) {
+                    handleMonth(mTile);
+                } else {
+                    TemporalTiler.tile(mTile.getStart(), mTile.getEnd(), ChronoUnit.DAYS)
+                        .forEach(dTile -> handleDay(dTile));
+                }
+            });
+    }
+});
 ```
 
-For three levels:
-
-```java
-var yearTiler = TemporalTiler.<LocalDate>of(ChronoUnit.YEARS);
-
-var monthTiler = TemporalTiler.<LocalDate>of(ChronoUnit.MONTHS);
-
-var dayTiler = TemporalTiler.<LocalDate>of(ChronoUnit.DAYS);
-
-yearTiler.
-
-tile(startDate, endDate).
-
-forEach(tile ->{
-        if(tile.
-
-isAligned()){
-
-handleYear(tile);
-    }else{
-            monthTiler.
-
-tile(tile.getStart(),tile.
-
-getEnd()).
-
-forEach(mTile ->{
-        if(mTile.
-
-isAligned()){
-
-handleMonth(mTile);
-            }else{
-                    dayTiler.
-
-tile(mTile.getStart(),mTile.
-
-getEnd())
-        .
-
-forEach(dTile ->
-
-handleDay(dTile));
-        }
-        });
-        }
-        });
-```
-
-## API Sketch
+## API
 
 ```java
 // A single tile (range + metadata)
 public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
-
     T getStart();
-
     T getEnd();
-
-    ChronoUnit getGrain();
-
+    TemporalUnit getGrain();
     boolean isAligned();
 }
 
-// Controls traversal in hierarchical tiling
-public enum TileVisitResult {
-    CONTINUE,       // decompose into narrower grains
-    SKIP_CHILDREN   // accept as leaf, do not decompose further
-}
+// The tiler — static utility, two overloads
+public final class TemporalTiler {
 
-// The tiler — one grain, one method
-public final class TemporalTiler<T extends Temporal & Comparable<? super T>> {
+    // Convenience: built-in truncation for ChronoUnit
+    static <T extends Temporal & Comparable<? super T>>
+    List<TemporalTile<T>> tile(T start, T end, ChronoUnit grain);
 
-    static <T extends Temporal & Comparable<? super T>> TemporalTiler<T> of(
-            ChronoUnit grain);
-
-    ChronoUnit getGrain();
-
-    List<TemporalTile<T>> tile(T start, T end);
+    // General-purpose: caller supplies truncator for any TemporalUnit
+    static <T extends Temporal & Comparable<? super T>>
+    List<TemporalTile<T>> tile(T start, T end, TemporalUnit grain,
+                               UnaryOperator<T> truncator);
 }
 ```
 
@@ -174,81 +107,43 @@ public final class TemporalTiler<T extends Temporal & Comparable<? super T>> {
 
 ```java
 // --- 1. Simple: partition a range by months ---
-
-TemporalTiler .
-
-<LocalDate> of(ChronoUnit.MONTHS)
-    .
-
-tile(LocalDate.of(2025, 3,15),LocalDate.
-
-of(2025,6,10))
-        .
-
-forEach(tile ->System.out.
-
-printf("[%s, %s) aligned=%b%n",
-       tile.getStart(),tile.
-
-getEnd(),tile.
-
-isAligned()));
+TemporalTiler.tile(
+    LocalDate.of(2025, 3, 15),
+    LocalDate.of(2025, 6, 10),
+    ChronoUnit.MONTHS
+).forEach(tile -> System.out.printf("[%s, %s) aligned=%b%n",
+        tile.getStart(), tile.getEnd(), tile.isAligned()));
 
 // --- 2. Hierarchical: year → month, user-driven ---
+var yearTiles = TemporalTiler.tile(startDate, endDate, ChronoUnit.YEARS);
 
-var yearTiler = TemporalTiler.<LocalDate>of(ChronoUnit.YEARS);
-
-var monthTiler = TemporalTiler.<LocalDate>of(ChronoUnit.MONTHS);
-
-yearTiler.
-
-tile(startDate, endDate).
-
-forEach(tile ->{
-        if(tile.
-
-isAligned()){
-
-handleYear(tile);
-    }else{
-            monthTiler.
-
-tile(tile.getStart(),tile.
-
-getEnd())
-        .
-
-forEach(mTile ->
-
-handleMonth(mTile));
-        }
-        });
+yearTiles.forEach(tile -> {
+    if (tile.isAligned()) {
+        handleYear(tile);
+    } else {
+        TemporalTiler.tile(tile.getStart(), tile.getEnd(), ChronoUnit.MONTHS)
+            .forEach(mTile -> handleMonth(mTile));
+    }
+});
 
 // --- 3. Time-based with LocalDateTime ---
+TemporalTiler.tile(startDateTime, endDateTime, ChronoUnit.HOURS)
+    .forEach(tile -> handleHour(tile));
 
-TemporalTiler .
-
-<LocalDateTime> of(ChronoUnit.HOURS)
-    .
-
-tile(startDateTime, endDateTime)
-    .
-
-forEach(tile ->
-
-handleHour(tile));
+// --- 4. Custom TemporalUnit with truncator ---
+TemporalTiler.tile(start, end, myCustomUnit, value -> truncateToMyUnit(value))
+    .forEach(tile -> handle(tile));
 ```
 
 ## Design Principles
 
 - **Decomposition only** — the library produces tiles. It does not cache, aggregate, or interpret them.
-- **Single grain per tiler** — each tiler handles one `ChronoUnit`. Hierarchical tiling is user-driven by chaining
-  tilers.
+- **Stateless** — `TemporalTiler` is a static utility. No instances, no builders, no stored state.
 - **Order-preserving** — tiles are emitted in temporal order (left to right).
 - **Non-overlapping** — tiles form a complete, gap-free partition of the input range. Half-open intervals `[start, end)`
   guarantee no double-counting at boundaries.
-- **Type-safe** — generic over `T extends Temporal & Comparable<? super T>`. No raw casts.
-- **Immutable** — `TemporalTile` and `TemporalTiler` are immutable.
+- **Type-safe** — generic over `T extends Temporal & Comparable<? super T>`.
+- **Immutable** — `TemporalTile` is immutable.
 - **No DST special handling** — `java.time` handles DST transitions correctly. Tiles may vary in duration (23/25-hour
   days) but are always non-overlapping and gap-free.
 
@@ -278,26 +173,29 @@ For date-only types (`LocalDate`), day-alignment is always true for full-day til
 
 ```
 src/main/java/
-  com/github/jinahya/time/temporal/
+  module-info.java
+  com/github/jinahya/time/temporal/tile/
+    package-info.java
     TemporalTile.java
     TemporalTiler.java
-    TemporalTilerConstants.java
-    TemporalTilerHelper.java
-    TemporalTilerUtils.java
-    TileVisitResult.java
 
 src/test/java/
-  com/github/jinahya/time/temporal/
-    TemporalTilerTest.java
-    TemporalTilerUtilsTest.java
+  com/github/jinahya/time/temporal/tile/
+    ChronoTiler_Tile_Test.java
+    TemporalTileAssert.java
+    TemporalTileTest.java
     _TestConstants.java
 ```
 
 ## Resolved Decisions
 
-- **Single grain per tiler**: simplest possible API. Hierarchical tiling is user-driven by chaining tilers on partial
-  tiles.
-- **Grains use `ChronoUnit`** (not `TemporalAmount`). `ChronoUnit` implements `TemporalUnit` and provides
-  `isSupportedBy()`, `between()`, `addTo()`, and duration-based ordering.
-- **Alignment detection** uses `TemporalUnit.between()` — no custom predicates needed.
+- **Static utility, not instances**: `TemporalTiler` has no state. `T` is method-level, inferred from arguments.
+- **No `U extends TemporalUnit` type parameter**: grain is stored as `TemporalUnit` in the tile. The unit type
+  parameter added no practical value — no standard implementations beyond `ChronoUnit`, and callers never needed the
+  concrete unit type in the return.
+- **No `& Serializable` bound**: tiling logic never serializes temporal values. All standard `java.time` types are
+  serializable anyway.
+- **`TemporalTile` is `final`**: no subclassing needed. It's a simple data carrier.
+- **Two `tile()` overloads**: `ChronoUnit` convenience (built-in truncation) and general-purpose (`TemporalUnit` +
+  caller-supplied truncator).
 - **No DST special handling**: `java.time` handles DST transitions correctly.

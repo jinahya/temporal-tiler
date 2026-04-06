@@ -6,19 +6,24 @@ toc::[]
 
 == Architecture
 
-=== Current Design (after refactor)
+=== Current Design
 
-* **`TemporalTiler`** — `final` utility class. Single static method: `tile(T, T, U, UnaryOperator<T>, TileFactory<T, U>)`. No class-level type parameters, no state, no inheritance.
-* **`TemporalTile<T, U>`** — abstract base for a single tile (`[start, end)` + grain + aligned flag). `T extends Temporal & Comparable<? super T>`, `U extends TemporalUnit`.
-* **`ChronoTile<T>`** — concrete `TemporalTile<T, ChronoUnit>`.
-* **`ChronoTiler`** — `final` utility class. Single static method: `tile(T, T, ChronoUnit)`. Delegates to `TemporalTiler.tile()` with built-in `ChronoUnit` truncation and `ChronoTile` factory.
+* **`TemporalTile<T>`** — `final` immutable tile representing a half-open range `[start, end)` at a `TemporalUnit` grain. Single type parameter `T extends Temporal & Comparable<? super T>`. No inheritance, no serialization concern.
+* **`TemporalTiler`** — `final` utility class. Two static `tile()` overloads:
+** `tile(T, T, TemporalUnit, UnaryOperator<T>)` — general-purpose, caller supplies truncator.
+** `tile(T, T, ChronoUnit)` — convenience, built-in truncation for all standard `ChronoUnit` values.
 
 === What was removed
 
-* `TemporalTiler.Builder` / `ChronoTiler.Builder` — no longer needed; ranges are method arguments, not stored state.
-* Class-level `T` on tilers — `T` is now method-level, inferred from arguments.
-* `TemporalTiler` as abstract base class with `truncate()` / `newTile()` abstract methods — replaced by `UnaryOperator<T>` and `TileFactory<T, U>` parameters.
-* `& Serializable` bound on `T` — unnecessary; tiling logic never serializes temporal values.
+* `ChronoTile<T>` — unnecessary subclass; `TemporalTile` is now `final` and concrete.
+* `ChronoTiler` — absorbed into `TemporalTiler` as a convenience `tile(T, T, ChronoUnit)` overload.
+* `TemporalTiler.TileFactory` — no longer needed; `TemporalTiler` creates `TemporalTile` directly.
+* `U extends TemporalUnit` type parameter — grain is stored as `TemporalUnit`; no practical benefit from parameterizing the unit type.
+* `& Serializable` bound on `T` — tiling logic never serializes temporal values.
+* `implements Serializable` on `TemporalTile` — not the library's concern.
+* `TemporalTiler.Builder` / `ChronoTiler.Builder` — ranges are method arguments, not stored state.
+* Class-level `T` on tilers — `T` is method-level, inferred from arguments.
+* `TemporalTiler` as abstract base class with `truncate()` / `newTile()` abstract methods — replaced by `UnaryOperator<T>` parameter.
 
 == What Works Well
 
@@ -34,8 +39,8 @@ The truncate + iterate approach in `TemporalTiler.tile()` is sound. Half-open in
 === Solid test coverage
 Tests across five temporal types with edge cases: empty ranges, smaller-than-grain, gap-free verification, hierarchical chaining.
 
-=== Clean API surface
-Two entry points: `ChronoTiler.tile(start, end, grain)` for standard use, `TemporalTiler.tile(start, end, grain, truncator, factory)` for custom `TemporalUnit` types. No builders, no instance creation.
+=== Minimal API surface
+Two classes, one type parameter. `TemporalTiler.tile(start, end, ChronoUnit.MONTHS)` for standard use, `TemporalTiler.tile(start, end, grain, truncator)` for custom `TemporalUnit` types. No builders, no factories, no instance creation.
 
 == Generics Usage
 
@@ -48,24 +53,16 @@ Two entry points: `ChronoTiler.tile(start, end, grain)` for standard use, `Tempo
 |Class |File |Type Parameters
 
 |`TemporalTile`
-|`src/main/.../tile/TemporalTile.java:21`
-|`<T extends Temporal & Comparable<? super T>, U extends TemporalUnit>`
-
-|`ChronoTile`
-|`src/main/.../tile/ChronoTile.java:17`
+|`src/main/.../tile/TemporalTile.java`
 |`<T extends Temporal & Comparable<? super T>>`
 
-|`TemporalTiler.TileFactory`
-|`src/main/.../tile/TemporalTiler.java:33`
-|`<T extends Temporal & Comparable<? super T>, U extends TemporalUnit>`
-
 |`TemporalTileAssert`
-|`src/test/.../tile/TemporalTileAssert.java:11`
-|`<T extends Temporal & Comparable<? super T>, U extends TemporalUnit>`
+|`src/test/.../tile/TemporalTileAssert.java`
+|`<T extends Temporal & Comparable<? super T>>`
 
 |`TemporalTileTest`
-|`src/test/.../tile/TemporalTileTest.java:8`
-|`<T extends TemporalTile<U, V>, U extends Temporal & Comparable<? super U>, V extends TemporalUnit>`
+|`src/test/.../tile/TemporalTileTest.java`
+|`<T extends Temporal & Comparable<? super T>>`
 |===
 
 ==== Method-level
@@ -74,31 +71,30 @@ Two entry points: `ChronoTiler.tile(start, end, grain)` for standard use, `Tempo
 |===
 |Method |File |Type Parameters
 
-|`TemporalTiler.tile()`
+|`TemporalTiler.tile(T, T, TemporalUnit, UnaryOperator<T>)`
 |`src/main/.../tile/TemporalTiler.java`
-|`<T extends Temporal & Comparable<? super T>, U extends TemporalUnit>`
-
-|`ChronoTiler.tile()`
-|`src/main/.../tile/ChronoTiler.java`
 |`<T extends Temporal & Comparable<? super T>>`
 
-|`ChronoTiler.truncate()` (private)
-|`src/main/.../tile/ChronoTiler.java`
+|`TemporalTiler.tile(T, T, ChronoUnit)`
+|`src/main/.../tile/TemporalTiler.java`
+|`<T extends Temporal & Comparable<? super T>>`
+
+|`TemporalTiler.truncate()` (private)
+|`src/main/.../tile/TemporalTiler.java`
 |`<T extends Temporal & Comparable<? super T>>`
 
 |`TemporalTileAssert.assertTile()`
 |`src/test/.../tile/TemporalTileAssert.java`
-|`<T extends Temporal & Comparable<? super T>, U extends TemporalUnit>`
+|`<T extends Temporal & Comparable<? super T>>`
 |===
 
 === Parameterized Type Usages
 
 ==== Inheritance
 
-* `ChronoTile<T>` extends `TemporalTile<T, ChronoUnit>`
-* `TemporalTileAssert<T, U>` extends `AbstractAssert<TemporalTileAssert<T, U>, TemporalTile<T, U>>`
+* `TemporalTileAssert<T>` extends `AbstractAssert<TemporalTileAssert<T>, TemporalTile<T>>`
 
-==== Unchecked casts to `(T)` in `ChronoTiler.truncate()`
+==== Unchecked casts to `(T)` in `TemporalTiler.truncate()`
 
 All casts from `Temporal` API return values back to `T`:
 
@@ -111,21 +107,21 @@ All casts from `Temporal` API return values back to `T`:
 
 These casts are safe in practice because `Temporal.with()`/`minus()` return the same concrete type, but the compiler cannot verify this.
 
-==== Concrete type arguments in tests (`Chrono_Tile_Test`)
+==== Concrete type arguments in tests
 
-* `ChronoTiler.tile(LocalTime, ...)` -- time-based tests (HOURS, MINUTES)
-* `ChronoTiler.tile(LocalDate, ...)` -- date-based tests (DAYS, WEEKS, MONTHS, YEARS)
-* `ChronoTiler.tile(LocalDateTime, ...)` -- combined date-time tests
-* `ChronoTiler.tile(OffsetDateTime, ...)` -- offset-aware tests
-* `ChronoTiler.tile(ZonedDateTime, ...)` -- zone-aware tests
+* `TemporalTiler.tile(LocalTime, ...)` -- time-based tests (HOURS, MINUTES)
+* `TemporalTiler.tile(LocalDate, ...)` -- date-based tests (DAYS, WEEKS, MONTHS, YEARS)
+* `TemporalTiler.tile(LocalDateTime, ...)` -- combined date-time tests
+* `TemporalTiler.tile(OffsetDateTime, ...)` -- offset-aware tests
+* `TemporalTiler.tile(ZonedDateTime, ...)` -- zone-aware tests
 
 === Observations
 
 * `T` lives at class level only on `TemporalTile` (which holds typed `start`/`end` fields) -- correct, because the tile owns data of type `T`.
-* `T` lives at method level on both tilers -- correct, because the tiler is stateless and infers `T` from arguments. A single `ChronoTiler.tile()` call works with any compatible temporal type.
-* `U` on `TemporalTiler.tile()` is truly generic: callers can supply any `TemporalUnit` with a custom truncator. `ChronoTiler` fixes `U = ChronoUnit` and provides the truncator.
-* No `& Serializable` on `T` -- the tiling logic never serializes temporal values. `TemporalTile` implements `Serializable`, and all standard `java.time` types are serializable, so serialization works in practice without the bound.
+* `T` lives at method level on the tiler -- correct, because the tiler is stateless and infers `T` from arguments. A single `TemporalTiler.tile()` call works with any compatible temporal type.
+* No `U extends TemporalUnit` parameter -- grain is stored as `TemporalUnit` in the tile. The unit type parameter added no practical value (no standard `TemporalUnit` implementations beyond `ChronoUnit`; callers never needed the concrete unit type in the return).
+* No `& Serializable` on `T` -- the tiling logic never serializes temporal values. All standard `java.time` types are serializable, so serialization works in practice without the bound.
 
 == Bottom Line
 
-The core algorithm (~50 lines in `tile()` + `truncate()`) is correct and useful. The architecture now matches the complexity of the problem: two static methods, one abstract tile class, one concrete tile class. Extension via `TemporalTiler.tile(T, T, U, truncator, factory)` is available for custom `TemporalUnit` types without requiring subclassing.
+The core algorithm (~50 lines in `tile()` + `truncate()`) is correct and useful. The architecture is minimal: two classes, one type parameter, zero inheritance. Extension via `TemporalTiler.tile(T, T, TemporalUnit, truncator)` is available for custom `TemporalUnit` types without requiring subclassing or factory interfaces.
