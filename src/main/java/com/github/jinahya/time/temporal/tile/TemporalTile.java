@@ -1,7 +1,5 @@
 package com.github.jinahya.time.temporal.tile;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalUnit;
 import java.util.Objects;
@@ -14,18 +12,9 @@ import java.util.Objects;
  *
  * @param <T> the temporal type (e.g., {@link java.time.LocalDate}, {@link java.time.LocalDateTime},
  *            {@link java.time.Instant})
- * @param <U> the temporal unit type (e.g., {@link java.time.temporal.ChronoUnit})
  * @see TemporalTiler
- * @see ChronoTile
  */
-public abstract class TemporalTile<
-        T extends Temporal & Comparable<? super T> & Serializable,
-        U extends TemporalUnit
-        >
-        implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = -2680380686049055769L;
+public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
 
     // -----------------------------------------------------------------------------------------------------------------
 
@@ -37,7 +26,7 @@ public abstract class TemporalTile<
      * @param grain   the grain unit
      * @param aligned whether this tile is boundary-aligned
      */
-    protected TemporalTile(final T start, final T end, final U grain, final boolean aligned) {
+    TemporalTile(final T start, final T end, final TemporalUnit grain, final boolean aligned) {
         super();
         this.start = Objects.requireNonNull(start, "start is null");
         this.end = Objects.requireNonNull(end, "end is null");
@@ -62,11 +51,11 @@ public abstract class TemporalTile<
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final var that = (TemporalTile<?, ?>) obj;
+        final var that = (TemporalTile<?>) obj;
         return aligned == that.aligned &&
                start.equals(that.start) &&
                end.equals(that.end) &&
-               grain == that.grain;
+               grain.equals(that.grain);
     }
 
     @Override
@@ -81,7 +70,7 @@ public abstract class TemporalTile<
      *
      * @return the start of this tile (inclusive)
      */
-    public final T getStart() {
+    public T getStart() {
         return start;
     }
 
@@ -92,7 +81,7 @@ public abstract class TemporalTile<
      *
      * @return the end of this tile (exclusive)
      */
-    public final T getEnd() {
+    public T getEnd() {
         return end;
     }
 
@@ -103,7 +92,7 @@ public abstract class TemporalTile<
      *
      * @return the grain of this tile
      */
-    public final U getGrain() {
+    public TemporalUnit getGrain() {
         return grain;
     }
 
@@ -117,7 +106,7 @@ public abstract class TemporalTile<
      *
      * @return {@code true} if this tile is boundary-aligned; {@code false} if it is a partial tile
      */
-    public final boolean isAligned() {
+    public boolean isAligned() {
         return aligned;
     }
 
@@ -136,7 +125,7 @@ public abstract class TemporalTile<
     /**
      * The grain unit of this tile.
      */
-    private final U grain;
+    private final TemporalUnit grain;
 
     /**
      * Whether this tile is boundary-aligned.

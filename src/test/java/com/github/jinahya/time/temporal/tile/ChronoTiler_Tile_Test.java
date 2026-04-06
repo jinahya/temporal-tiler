@@ -19,11 +19,11 @@ import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTil
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link ChronoTiler#tile(java.time.temporal.Temporal, java.time.temporal.Temporal, ChronoUnit)}, which
+ * Tests for {@link TemporalTiler#tile(java.time.temporal.Temporal, java.time.temporal.Temporal, ChronoUnit)}, which
  * decomposes a half-open temporal range {@code [start, end)} into a list of non-overlapping, gap-free
  * {@link TemporalTile}s at a single {@link ChronoUnit} grain.
  *
- * @see ChronoTiler
+ * @see TemporalTiler
  * @see TemporalTileAssert
  */
 @Slf4j
@@ -42,7 +42,7 @@ class ChronoTiler_Tile_Test {
                     & 3_600_000_000_000L
                     | 600_000_000_000L
             );
-            final var tiles = ChronoTiler.tile(start, end, grain);
+            final var tiles = TemporalTiler.tile(start, end, grain);
             tiles.forEach(t -> {
                 log.debug("tile: {}", t);
             });
@@ -63,7 +63,7 @@ class ChronoTiler_Tile_Test {
                             & 86_400_000_000_000L
                             | 10_800_000_000_000L
                     );
-            final var tiles = ChronoTiler.tile(start, end, grain);
+            final var tiles = TemporalTiler.tile(start, end, grain);
             tiles.forEach(t -> {
                 log.debug("tile: {}", t);
             });
@@ -74,7 +74,7 @@ class ChronoTiler_Tile_Test {
         void _Hours_PartialHeadAndTail() {
             final var start = LocalTime.of(14, 30);
             final var end = LocalTime.of(17, 45);
-            final var tiles = ChronoTiler.tile(start, end, ChronoUnit.HOURS);
+            final var tiles = TemporalTiler.tile(start, end, ChronoUnit.HOURS);
             assertThat(tiles)
                     .hasSize(4)
                     .extracting(TemporalTile::getGrain).containsOnly(ChronoUnit.HOURS);
@@ -101,14 +101,14 @@ class ChronoTiler_Tile_Test {
 
         @Test
         void _Hours_AllAligned() {
-            var tiles = ChronoTiler.tile(LocalTime.of(10, 0), LocalTime.of(13, 0), ChronoUnit.HOURS);
+            var tiles = TemporalTiler.tile(LocalTime.of(10, 0), LocalTime.of(13, 0), ChronoUnit.HOURS);
             assertThat(tiles).hasSize(3);
             assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
         }
 
         @Test
         void _Minutes_PartialHeadAndTail() {
-            var tiles = ChronoTiler.tile(LocalTime.of(10, 15, 30), LocalTime.of(10, 18, 20), ChronoUnit.MINUTES);
+            var tiles = TemporalTiler.tile(LocalTime.of(10, 15, 30), LocalTime.of(10, 18, 20), ChronoUnit.MINUTES);
             assertThat(tiles).hasSize(4);
             assertTile(tiles.getFirst()).isNotAligned();
             assertTile(tiles.get(1)).isAligned();
@@ -119,13 +119,13 @@ class ChronoTiler_Tile_Test {
         @Test
         void _EmptyRange() {
             var time = LocalTime.of(12, 0);
-            var tiles = ChronoTiler.tile(time, time, ChronoUnit.HOURS);
+            var tiles = TemporalTiler.tile(time, time, ChronoUnit.HOURS);
             assertThat(tiles).isEmpty();
         }
 
         @Test
         void _SmallerThanGrain() {
-            var tiles = ChronoTiler.tile(LocalTime.of(10, 15), LocalTime.of(10, 45), ChronoUnit.HOURS);
+            var tiles = TemporalTiler.tile(LocalTime.of(10, 15), LocalTime.of(10, 45), ChronoUnit.HOURS);
             assertThat(tiles).hasSize(1);
             assertTile(tiles.getFirst())
                     .hasStart(LocalTime.of(10, 15))
@@ -139,7 +139,7 @@ class ChronoTiler_Tile_Test {
 
         @Test
         void _Months_PartialHeadAndTail() {
-            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 6, 10), ChronoUnit.MONTHS);
+            var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 6, 10), ChronoUnit.MONTHS);
             assertThat(tiles).hasSize(4);
             assertTile(tiles.getFirst())
                     .hasStart(LocalDate.of(2025, 3, 15))
@@ -155,14 +155,14 @@ class ChronoTiler_Tile_Test {
 
         @Test
         void _Days_AllAligned() {
-            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 18), ChronoUnit.DAYS);
+            var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 18), ChronoUnit.DAYS);
             assertThat(tiles).hasSize(3);
             assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
         }
 
         @Test
         void _Years_PartialHeadAndTail() {
-            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2027, 6, 10), ChronoUnit.YEARS);
+            var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2027, 6, 10), ChronoUnit.YEARS);
             assertThat(tiles).hasSize(3);
             assertTile(tiles.getFirst()).isNotAligned();
             assertTile(tiles.get(1)).isAligned();
@@ -171,7 +171,7 @@ class ChronoTiler_Tile_Test {
 
         @Test
         void _Weeks_PartialHeadAndTail() {
-            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 12), LocalDate.of(2025, 3, 27), ChronoUnit.WEEKS);
+            var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 12), LocalDate.of(2025, 3, 27), ChronoUnit.WEEKS);
             assertThat(tiles).hasSize(3);
             assertTile(tiles.getFirst())
                     .hasStart(LocalDate.of(2025, 3, 12))
@@ -184,13 +184,13 @@ class ChronoTiler_Tile_Test {
         @Test
         void _EmptyRange() {
             var date = LocalDate.of(2025, 3, 15);
-            var tiles = ChronoTiler.tile(date, date, ChronoUnit.MONTHS);
+            var tiles = TemporalTiler.tile(date, date, ChronoUnit.MONTHS);
             assertThat(tiles).isEmpty();
         }
 
         @Test
         void _SmallerThanGrain() {
-            var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 20), ChronoUnit.MONTHS);
+            var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 20), ChronoUnit.MONTHS);
             assertThat(tiles).hasSize(1);
             assertTile(tiles.getFirst()).isNotAligned();
         }
@@ -199,7 +199,7 @@ class ChronoTiler_Tile_Test {
         void _GapFree() {
             var start = LocalDate.of(2025, 3, 15);
             var end = LocalDate.of(2025, 8, 22);
-            var tiles = ChronoTiler.tile(start, end, ChronoUnit.MONTHS);
+            var tiles = TemporalTiler.tile(start, end, ChronoUnit.MONTHS);
             assertThat(tiles.getFirst().getStart()).isEqualTo(start);
             assertThat(tiles.getLast().getEnd()).isEqualTo(end);
             for (int i = 0; i < tiles.size() - 1; i++) {
@@ -213,7 +213,7 @@ class ChronoTiler_Tile_Test {
 
         @Test
         void _Hours_PartialHeadAndTail() {
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     LocalDateTime.of(2025, 3, 15, 14, 30),
                     LocalDateTime.of(2025, 3, 15, 17, 30),
                     ChronoUnit.HOURS);
@@ -232,7 +232,7 @@ class ChronoTiler_Tile_Test {
 
         @Test
         void _Days_PartialHeadAndTail() {
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     LocalDateTime.of(2025, 3, 15, 10, 0),
                     LocalDateTime.of(2025, 3, 18, 14, 0),
                     ChronoUnit.DAYS);
@@ -248,7 +248,7 @@ class ChronoTiler_Tile_Test {
 
         @Test
         void _Months_AllAligned() {
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     LocalDateTime.of(2025, 4, 1, 0, 0),
                     LocalDateTime.of(2025, 7, 1, 0, 0),
                     ChronoUnit.MONTHS);
@@ -258,7 +258,7 @@ class ChronoTiler_Tile_Test {
 
         @Test
         void _Minutes_PartialHead() {
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     LocalDateTime.of(2025, 3, 15, 14, 15, 30),
                     LocalDateTime.of(2025, 3, 15, 14, 18, 0),
                     ChronoUnit.MINUTES);
@@ -275,7 +275,7 @@ class ChronoTiler_Tile_Test {
         @Test
         void _Hours_PartialHeadAndTail() {
             var offset = ZoneOffset.ofHours(9);
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     OffsetDateTime.of(2025, 3, 15, 14, 30, 0, 0, offset),
                     OffsetDateTime.of(2025, 3, 15, 17, 15, 0, 0, offset),
                     ChronoUnit.HOURS);
@@ -292,7 +292,7 @@ class ChronoTiler_Tile_Test {
         @Test
         void _Days_AllAligned() {
             var offset = ZoneOffset.UTC;
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     OffsetDateTime.of(2025, 3, 15, 0, 0, 0, 0, offset),
                     OffsetDateTime.of(2025, 3, 18, 0, 0, 0, 0, offset),
                     ChronoUnit.DAYS);
@@ -303,7 +303,7 @@ class ChronoTiler_Tile_Test {
         @Test
         void _Months_PartialHeadAndTail() {
             var offset = ZoneOffset.ofHours(-5);
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     OffsetDateTime.of(2025, 3, 15, 0, 0, 0, 0, offset),
                     OffsetDateTime.of(2025, 6, 10, 0, 0, 0, 0, offset),
                     ChronoUnit.MONTHS);
@@ -321,7 +321,7 @@ class ChronoTiler_Tile_Test {
         @Test
         void _Hours_PartialHeadAndTail() {
             var zone = ZoneId.of("America/New_York");
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     ZonedDateTime.of(2025, 3, 15, 14, 30, 0, 0, zone),
                     ZonedDateTime.of(2025, 3, 15, 17, 45, 0, 0, zone),
                     ChronoUnit.HOURS);
@@ -335,7 +335,7 @@ class ChronoTiler_Tile_Test {
         @Test
         void _Days_PartialHead() {
             var zone = ZoneId.of("Europe/London");
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     ZonedDateTime.of(2025, 3, 15, 10, 0, 0, 0, zone),
                     ZonedDateTime.of(2025, 3, 18, 0, 0, 0, 0, zone),
                     ChronoUnit.DAYS);
@@ -348,7 +348,7 @@ class ChronoTiler_Tile_Test {
         @Test
         void _Months_AllAligned() {
             var zone = ZoneId.of("Asia/Tokyo");
-            var tiles = ChronoTiler.tile(
+            var tiles = TemporalTiler.tile(
                     ZonedDateTime.of(2025, 4, 1, 0, 0, 0, 0, zone),
                     ZonedDateTime.of(2025, 7, 1, 0, 0, 0, 0, zone),
                     ChronoUnit.MONTHS);
@@ -360,14 +360,14 @@ class ChronoTiler_Tile_Test {
         void _EmptyRange() {
             var zone = ZoneId.of("UTC");
             var zdt = ZonedDateTime.of(2025, 3, 15, 12, 0, 0, 0, zone);
-            var tiles = ChronoTiler.tile(zdt, zdt, ChronoUnit.HOURS);
+            var tiles = TemporalTiler.tile(zdt, zdt, ChronoUnit.HOURS);
             assertThat(tiles).isEmpty();
         }
     }
 
     @Test
     void _Months_PartialHeadAndTail() {
-        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 6, 10), ChronoUnit.MONTHS);
+        var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 6, 10), ChronoUnit.MONTHS);
         assertThat(tiles).hasSize(4);
         assertTile(tiles.getFirst())
                 .hasStart(LocalDate.of(2025, 3, 15))
@@ -389,14 +389,14 @@ class ChronoTiler_Tile_Test {
 
     @Test
     void _Months_AlignedStartAndEnd() {
-        var tiles = ChronoTiler.tile(LocalDate.of(2025, 4, 1), LocalDate.of(2025, 7, 1), ChronoUnit.MONTHS);
+        var tiles = TemporalTiler.tile(LocalDate.of(2025, 4, 1), LocalDate.of(2025, 7, 1), ChronoUnit.MONTHS);
         assertThat(tiles).hasSize(3);
         assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
     }
 
     @Test
     void _Years_PartialHeadAndTail() {
-        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2027, 6, 10), ChronoUnit.YEARS);
+        var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2027, 6, 10), ChronoUnit.YEARS);
         assertThat(tiles).hasSize(3);
         assertTile(tiles.getFirst())
                 .hasStart(LocalDate.of(2025, 3, 15))
@@ -414,7 +414,7 @@ class ChronoTiler_Tile_Test {
 
     @Test
     void _Days_AllAligned() {
-        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 18), ChronoUnit.DAYS);
+        var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 18), ChronoUnit.DAYS);
         assertThat(tiles).hasSize(3);
         assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
         assertTile(tiles.getFirst())
@@ -424,7 +424,7 @@ class ChronoTiler_Tile_Test {
 
     @Test
     void _Hours_PartialHead() {
-        var tiles = ChronoTiler.tile(
+        var tiles = TemporalTiler.tile(
                 LocalDateTime.of(2025, 3, 15, 14, 30),
                 LocalDateTime.of(2025, 3, 15, 17, 0),
                 ChronoUnit.HOURS);
@@ -439,13 +439,13 @@ class ChronoTiler_Tile_Test {
 
     @Test
     void _EmptyRange() {
-        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 15), ChronoUnit.MONTHS);
+        var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 15), ChronoUnit.MONTHS);
         assertThat(tiles).isEmpty();
     }
 
     @Test
     void _SmallerThanGrain() {
-        var tiles = ChronoTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 20), ChronoUnit.MONTHS);
+        var tiles = TemporalTiler.tile(LocalDate.of(2025, 3, 15), LocalDate.of(2025, 3, 20), ChronoUnit.MONTHS);
         assertThat(tiles).hasSize(1);
         assertTile(tiles.getFirst())
                 .hasStart(LocalDate.of(2025, 3, 15))
@@ -458,10 +458,10 @@ class ChronoTiler_Tile_Test {
         var start = LocalDate.of(2025, 3, 15);
         var end = LocalDate.of(2027, 6, 10);
 
-        var yearTiles = ChronoTiler.tile(start, end, ChronoUnit.YEARS);
+        var yearTiles = TemporalTiler.tile(start, end, ChronoUnit.YEARS);
         assertThat(yearTiles).hasSize(3);
 
-        var headMonths = ChronoTiler.tile(
+        var headMonths = TemporalTiler.tile(
                 yearTiles.getFirst().getStart(),
                 yearTiles.getFirst().getEnd(),
                 ChronoUnit.MONTHS);
@@ -475,7 +475,7 @@ class ChronoTiler_Tile_Test {
     void _GapFree() {
         var start = LocalDate.of(2025, 3, 15);
         var end = LocalDate.of(2025, 8, 22);
-        var tiles = ChronoTiler.tile(start, end, ChronoUnit.MONTHS);
+        var tiles = TemporalTiler.tile(start, end, ChronoUnit.MONTHS);
         assertThat(tiles.getFirst().getStart()).isEqualTo(start);
         assertThat(tiles.getLast().getEnd()).isEqualTo(end);
         for (int i = 0; i < tiles.size() - 1; i++) {
