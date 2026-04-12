@@ -6,7 +6,7 @@
  *     <li>{@link com.github.jinahya.time.temporal.tile.TemporalTile} &mdash; an immutable tile representing a
  *         half-open range {@code [start, end)} at a {@link java.time.temporal.TemporalUnit} grain</li>
  *     <li>{@link com.github.jinahya.time.temporal.tile.TemporalTiler} &mdash; static utility that partitions a range
- *         into tiles; includes a convenience overload for {@link java.time.temporal.ChronoUnit}</li>
+ *         into tiles at a {@link java.time.temporal.ChronoUnit} grain</li>
  * </ul>
  *
  * @see com.github.jinahya.time.temporal.tile

@@ -30,6 +30,7 @@ public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
         super();
         this.start = Objects.requireNonNull(start, "start is null");
         this.end = Objects.requireNonNull(end, "end is null");
+        assert start.compareTo(end) < 0 : "start must be before end";
         this.grain = Objects.requireNonNull(grain, "grain is null");
         this.aligned = aligned;
     }
@@ -53,9 +54,9 @@ public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
         }
         final var that = (TemporalTile<?>) obj;
         return aligned == that.aligned &&
-               start.equals(that.start) &&
-               end.equals(that.end) &&
-               grain.equals(that.grain);
+               Objects.equals(start, that.start) &&
+               Objects.equals(end, that.end) &&
+               Objects.equals(grain, that.grain);
     }
 
     @Override
@@ -70,7 +71,7 @@ public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
      *
      * @return the start of this tile (inclusive)
      */
-    public T getStart() {
+    public T start() {
         return start;
     }
 
@@ -81,7 +82,7 @@ public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
      *
      * @return the end of this tile (exclusive)
      */
-    public T getEnd() {
+    public T end() {
         return end;
     }
 
@@ -92,7 +93,7 @@ public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
      *
      * @return the grain of this tile
      */
-    public TemporalUnit getGrain() {
+    public TemporalUnit grain() {
         return grain;
     }
 
@@ -106,7 +107,7 @@ public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
      *
      * @return {@code true} if this tile is boundary-aligned; {@code false} if it is a partial tile
      */
-    public boolean isAligned() {
+    public boolean aligned() {
         return aligned;
     }
 

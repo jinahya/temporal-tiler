@@ -11,7 +11,7 @@ A Java library for decomposing temporal ranges into boundary-aligned tiles at a 
 
 ## Purpose
 
-Given an arbitrary half-open temporal range `[start, end)` and a `TemporalUnit` grain, produce a list of tiles partitioning that range. Each tile is either boundary-aligned (full grain) or partial (head/tail). The library does **not** aggregate, compute, or interpret the tiles — it only decomposes.
+Given an arbitrary half-open temporal range `[start, end)` and a `ChronoUnit` grain, produce a list of tiles partitioning that range. Each tile is either boundary-aligned (full grain) or partial (head/tail). The library does **not** aggregate, compute, or interpret the tiles — it only decomposes.
 
 For hierarchical tiling (year → month → day), the user chains calls — calling `tile()` on sub-ranges as needed.
 
@@ -45,7 +45,7 @@ TemporalTiler.tile(
     LocalDate.of(2025, 6, 10),
     ChronoUnit.MONTHS
 ).forEach(tile -> System.out.printf("[%s, %s) aligned=%b%n",
-        tile.getStart(), tile.getEnd(), tile.isAligned()));
+        tile.start(), tile.end(), tile.aligned()));
 ```
 
 ### Hierarchical: year → month → day (user-driven)
@@ -54,15 +54,15 @@ TemporalTiler.tile(
 var yearTiles = TemporalTiler.tile(startDate, endDate, ChronoUnit.YEARS);
 
 yearTiles.forEach(tile -> {
-    if (tile.isAligned()) {
+    if (tile.aligned()) {
         handleYear(tile);
     } else {
-        TemporalTiler.tile(tile.getStart(), tile.getEnd(), ChronoUnit.MONTHS)
+        TemporalTiler.tile(tile, ChronoUnit.MONTHS)
             .forEach(mTile -> {
-                if (mTile.isAligned()) {
+                if (mTile.aligned()) {
                     handleMonth(mTile);
                 } else {
-                    TemporalTiler.tile(mTile.getStart(), mTile.getEnd(), ChronoUnit.DAYS)
+                    TemporalTiler.tile(mTile, ChronoUnit.DAYS)
                         .forEach(dTile -> handleDay(dTile));
                 }
             });
@@ -77,35 +77,25 @@ TemporalTiler.tile(startDateTime, endDateTime, ChronoUnit.HOURS)
     .forEach(tile -> handleHour(tile));
 ```
 
-### Custom TemporalUnit with truncator
-
-```java
-TemporalTiler.tile(start, end, myCustomUnit, value -> truncateToMyUnit(value))
-    .forEach(tile -> handle(tile));
-```
-
 ## API
 
 ```java
 // A single tile (range + metadata)
 public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
-    T getStart();
-    T getEnd();
-    TemporalUnit getGrain();
-    boolean isAligned();
+    T start();
+    T end();
+    TemporalUnit grain();
+    boolean aligned();
 }
 
 // The tiler — static utility
 public final class TemporalTiler {
 
-    // Convenience: built-in truncation for ChronoUnit
     static <T extends Temporal & Comparable<? super T>>
     List<TemporalTile<T>> tile(T start, T end, ChronoUnit grain);
 
-    // General-purpose: caller supplies truncator
     static <T extends Temporal & Comparable<? super T>>
-    List<TemporalTile<T>> tile(T start, T end, TemporalUnit grain,
-                               UnaryOperator<T> truncator);
+    List<TemporalTile<T>> tile(TemporalTile<T> tile, ChronoUnit grain);
 }
 ```
 

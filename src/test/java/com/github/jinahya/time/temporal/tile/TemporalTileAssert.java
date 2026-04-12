@@ -23,7 +23,7 @@ class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
     // ----------------------------------------------------------------------------------------------------------- start
     TemporalTileAssert<T> hasStart(final T expectedStart) {
         isNotNull();
-        final var actualStart = actual.getStart();
+        final var actualStart = actual.start();
         assertThat(actualStart).isEqualByComparingTo(expectedStart);
         return myself;
     }
@@ -31,7 +31,7 @@ class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
     // ------------------------------------------------------------------------------------------------------------- end
     TemporalTileAssert<T> hasEnd(final T expectedEnd) {
         isNotNull();
-        final var actualEnd = actual.getEnd();
+        final var actualEnd = actual.end();
         assertThat(actualEnd).isEqualByComparingTo(expectedEnd);
         return myself;
     }
@@ -39,7 +39,7 @@ class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
     // ----------------------------------------------------------------------------------------------------------- grain
     TemporalTileAssert<T> hasGrain(final TemporalUnit expectedGrain) {
         isNotNull();
-        final var actualGrain = actual.getGrain();
+        final var actualGrain = actual.grain();
         assertThat(actualGrain).isEqualTo(expectedGrain);
         return myself;
     }
@@ -47,14 +47,14 @@ class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
     // --------------------------------------------------------------------------------------------------------- aligned
     TemporalTileAssert<T> isAligned() {
         isNotNull();
-        final var aligned = actual.isAligned();
+        final var aligned = actual.aligned();
         assertThat(aligned).isTrue();
         return myself;
     }
 
     TemporalTileAssert<T> isNotAligned() {
         isNotNull();
-        final var aligned = actual.isAligned();
+        final var aligned = actual.aligned();
         assertThat(aligned).isFalse();
         return myself;
     }

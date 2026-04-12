@@ -1,15 +1,12 @@
 package com.github.jinahya.time.temporal.tile;
 
-import java.time.temporal.Temporal;
-import java.util.Objects;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.jupiter.api.Test;
 
-abstract class TemporalTileTest<T extends Temporal & Comparable<? super T>> {
+class TemporalTileTest {
 
-    TemporalTileTest(final Class<T> temporalClass) {
-        super();
-        this.temporalClass = Objects.requireNonNull(temporalClass, "temporalClass is null");
+    @Test
+    void equals__() {
+        EqualsVerifier.forClass(TemporalTile.class).verify();
     }
-
-    // -----------------------------------------------------------------------------------------------------------------
-    final Class<T> temporalClass;
 }

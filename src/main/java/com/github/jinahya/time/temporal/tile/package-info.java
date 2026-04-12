@@ -1,7 +1,7 @@
 /**
  * Provides classes for decomposing half-open temporal ranges into boundary-aligned tiles.
  *
- * <p>Given an arbitrary range {@code [start, end)} and a {@link java.time.temporal.TemporalUnit} grain, the library
+ * <p>Given an arbitrary range {@code [start, end)} and a {@link java.time.temporal.ChronoUnit} grain, the library
  * partitions that range into an ordered, non-overlapping, gap-free sequence of tiles. Each tile is either
  * <em>boundary-aligned</em> (spanning exactly one full grain) or <em>partial</em> (a head or tail fragment).
  *
@@ -9,8 +9,8 @@
  * <ul>
  *     <li>{@link com.github.jinahya.time.temporal.tile.TemporalTile} &mdash; an immutable tile
  *         ({@code [start, end)} + grain + aligned flag)</li>
- *     <li>{@link com.github.jinahya.time.temporal.tile.TemporalTiler} &mdash; static utility that partitions a range;
- *         accepts a custom truncator, or uses a built-in one for {@link java.time.temporal.ChronoUnit}</li>
+ *     <li>{@link com.github.jinahya.time.temporal.tile.TemporalTiler} &mdash; static utility that partitions a range
+ *         into tiles at a {@link java.time.temporal.ChronoUnit} grain</li>
  * </ul>
  *
  * <h2>Quick start</h2>
@@ -35,10 +35,10 @@
  * var yearTiles = TemporalTiler.tile(startDate, endDate, ChronoUnit.YEARS);
  *
  * yearTiles.forEach(tile -> {
- *     if (tile.isAligned()) {
+ *     if (tile.aligned()) {
  *         handleYear(tile);
  *     } else {
- *         TemporalTiler.tile(tile.getStart(), tile.getEnd(), ChronoUnit.MONTHS)
+ *         TemporalTiler.tile(tile.start(), tile.end(), ChronoUnit.MONTHS)
  *             .forEach(mTile -> handleMonth(mTile));
  *     }
  * });

@@ -62,15 +62,15 @@ For multi-level tiling, the user chains `TemporalTiler.tile()` calls:
 var yearTiles = TemporalTiler.tile(startDate, endDate, ChronoUnit.YEARS);
 
 yearTiles.forEach(tile -> {
-    if (tile.isAligned()) {
+    if (tile.aligned()) {
         handleYear(tile);
     } else {
-        TemporalTiler.tile(tile.getStart(), tile.getEnd(), ChronoUnit.MONTHS)
+        TemporalTiler.tile(tile.start(), tile.end(), ChronoUnit.MONTHS)
             .forEach(mTile -> {
-                if (mTile.isAligned()) {
+                if (mTile.aligned()) {
                     handleMonth(mTile);
                 } else {
-                    TemporalTiler.tile(mTile.getStart(), mTile.getEnd(), ChronoUnit.DAYS)
+                    TemporalTiler.tile(mTile.start(), mTile.end(), ChronoUnit.DAYS)
                         .forEach(dTile -> handleDay(dTile));
                 }
             });
@@ -83,23 +83,17 @@ yearTiles.forEach(tile -> {
 ```java
 // A single tile (range + metadata)
 public final class TemporalTile<T extends Temporal & Comparable<? super T>> {
-    T getStart();
-    T getEnd();
-    TemporalUnit getGrain();
-    boolean isAligned();
+    T start();
+    T end();
+    TemporalUnit grain();
+    boolean aligned();
 }
 
-// The tiler — static utility, two overloads
+// The tiler — static utility, single method
 public final class TemporalTiler {
 
-    // Convenience: built-in truncation for ChronoUnit
     static <T extends Temporal & Comparable<? super T>>
     List<TemporalTile<T>> tile(T start, T end, ChronoUnit grain);
-
-    // General-purpose: caller supplies truncator for any TemporalUnit
-    static <T extends Temporal & Comparable<? super T>>
-    List<TemporalTile<T>> tile(T start, T end, TemporalUnit grain,
-                               UnaryOperator<T> truncator);
 }
 ```
 
@@ -112,16 +106,16 @@ TemporalTiler.tile(
     LocalDate.of(2025, 6, 10),
     ChronoUnit.MONTHS
 ).forEach(tile -> System.out.printf("[%s, %s) aligned=%b%n",
-        tile.getStart(), tile.getEnd(), tile.isAligned()));
+        tile.start(), tile.end(), tile.aligned()));
 
 // --- 2. Hierarchical: year → month, user-driven ---
 var yearTiles = TemporalTiler.tile(startDate, endDate, ChronoUnit.YEARS);
 
 yearTiles.forEach(tile -> {
-    if (tile.isAligned()) {
+    if (tile.aligned()) {
         handleYear(tile);
     } else {
-        TemporalTiler.tile(tile.getStart(), tile.getEnd(), ChronoUnit.MONTHS)
+        TemporalTiler.tile(tile.start(), tile.end(), ChronoUnit.MONTHS)
             .forEach(mTile -> handleMonth(mTile));
     }
 });
@@ -130,9 +124,6 @@ yearTiles.forEach(tile -> {
 TemporalTiler.tile(startDateTime, endDateTime, ChronoUnit.HOURS)
     .forEach(tile -> handleHour(tile));
 
-// --- 4. Custom TemporalUnit with truncator ---
-TemporalTiler.tile(start, end, myCustomUnit, value -> truncateToMyUnit(value))
-    .forEach(tile -> handle(tile));
 ```
 
 ## Design Principles
