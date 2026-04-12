@@ -104,7 +104,7 @@ public final class TemporalTiler {
     public static <T extends Temporal & Comparable<? super T>>
     List<TemporalTile<T>> tile(final T start, final T end, final ChronoUnit grain) {
         Objects.requireNonNull(grain, "grain is null");
-        return tile(start, end, grain, value -> truncate(value, grain));
+        return tile(start, end, grain, v -> truncate(v, grain));
     }
 
     // -----------------------------------------------------------------------------------------------------------------
