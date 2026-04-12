@@ -1,0 +1,57 @@
+= Miscellaneous
+:toc:
+:toc-placement!:
+
+toc::[]
+
+== ChronoUnit Hierarchy
+
+A tree of `java.time.temporal.ChronoUnit` values, ordered from coarsest to finest grain.
+
+----
+FOREVER
+ERA
+MILLENNIA
+└── CENTURIES
+    └── DECADES
+        └── YEARS
+            ├── MONTHS
+            │   └── DAYS
+            │       ├── HALF_DAYS
+            │       │   └── HOURS
+            │       │       └── MINUTES
+            │       │           └── SECONDS
+            │       │               └── MILLIS
+            │       │                   └── MICROS
+            │       │                       └── NANOS
+            │       └── (WEEKS = 7 DAYS)
+            └── WEEKS
+----
+
+NOTE: `WEEKS` does not divide evenly into `MONTHS` or `YEARS`. It branches off from `DAYS` as a fixed 7-day unit.
+
+NOTE: `FOREVER` and `ERAS` are not supported by `TemporalTiler`.
+
+.ChronoUnit details
+[cols="<,>,>,<", options="header"]
+|===
+| Unit | Duration | Nanos | Time-based?
+
+| `NANOS` | 1 ns | 1 | yes
+| `MICROS` | 1 &mu;s | 1,000 | yes
+| `MILLIS` | 1 ms | 1,000,000 | yes
+| `SECONDS` | 1 s | 1,000,000,000 | yes
+| `MINUTES` | 60 s | 60,000,000,000 | yes
+| `HOURS` | 3,600 s | 3,600,000,000,000 | yes
+| `HALF_DAYS` | 43,200 s | 43,200,000,000,000 | yes
+| `DAYS` | 86,400 s | 86,400,000,000,000 | no (estimated)
+| `WEEKS` | 604,800 s | 604,800,000,000,000 | no (estimated)
+| `MONTHS` | 2,629,746 s | -- | no (estimated)
+| `YEARS` | 31,556,952 s | -- | no (estimated)
+| `DECADES` | 315,569,520 s | -- | no (estimated)
+| `CENTURIES` | 3,155,695,200 s | -- | no (estimated)
+| `MILLENNIA` | 31,556,952,000 s | -- | no (estimated)
+| `ERAS` | ~31,556,952,000,000,000 s | -- | no (estimated)
+| `FOREVER` | ~9,223,372,036,854,775,807 s | -- | no (estimated)
+|===
+
