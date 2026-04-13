@@ -30,11 +30,24 @@ class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
     }
 
     // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Creates a new assertion for the given tile.
+     *
+     * @param actual the tile to assert on
+     */
     TemporalTileAssert(final TemporalTile<T> actual) {
         super(actual, TemporalTileAssert.class);
     }
 
     // ----------------------------------------------------------------------------------------------------------- start
+
+    /**
+     * Asserts that the tile's {@linkplain TemporalTile#start() start} equals the expected value.
+     *
+     * @param expectedStart the expected start
+     * @return this assertion for chaining
+     */
     TemporalTileAssert<T> hasStart(final T expectedStart) {
         isNotNull();
         final var actualStart = actual.start();
@@ -43,6 +56,13 @@ class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
     }
 
     // ------------------------------------------------------------------------------------------------------------- end
+
+    /**
+     * Asserts that the tile's {@linkplain TemporalTile#end() end} equals the expected value.
+     *
+     * @param expectedEnd the expected end
+     * @return this assertion for chaining
+     */
     TemporalTileAssert<T> hasEnd(final T expectedEnd) {
         isNotNull();
         final var actualEnd = actual.end();
@@ -51,6 +71,13 @@ class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
     }
 
     // ----------------------------------------------------------------------------------------------------------- grain
+
+    /**
+     * Asserts that the tile's {@linkplain TemporalTile#grain() grain} equals the expected value.
+     *
+     * @param expectedGrain the expected grain
+     * @return this assertion for chaining
+     */
     TemporalTileAssert<T> hasGrain(final TemporalUnit expectedGrain) {
         isNotNull();
         final var actualGrain = actual.grain();
@@ -59,6 +86,12 @@ class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
     }
 
     // --------------------------------------------------------------------------------------------------------- aligned
+
+    /**
+     * Asserts that the tile is {@linkplain TemporalTile#aligned() boundary-aligned}.
+     *
+     * @return this assertion for chaining
+     */
     TemporalTileAssert<T> isAligned() {
         isNotNull();
         final var aligned = actual.aligned();
@@ -66,6 +99,11 @@ class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
         return myself;
     }
 
+    /**
+     * Asserts that the tile is not {@linkplain TemporalTile#aligned() boundary-aligned} (partial).
+     *
+     * @return this assertion for chaining
+     */
     TemporalTileAssert<T> isNotAligned() {
         isNotNull();
         final var aligned = actual.aligned();

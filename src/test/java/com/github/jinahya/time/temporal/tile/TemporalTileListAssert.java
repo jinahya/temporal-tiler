@@ -9,6 +9,14 @@ import java.util.List;
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Custom AssertJ assertion class for a list of {@link TemporalTile}s, providing fluent assertions on grain consistency,
+ * contiguity, alignment, and range boundaries.
+ *
+ * @param <T> the temporal type
+ * @see TemporalTileAssert
+ * @see TemporalTile
+ */
 class TemporalTileListAssert<T extends Temporal & Comparable<? super T>>
         extends AbstractIterableAssert<
         TemporalTileListAssert<T>,
@@ -16,22 +24,38 @@ class TemporalTileListAssert<T extends Temporal & Comparable<? super T>>
         TemporalTile<T>,
         TemporalTileAssert<T>> {
 
+    /**
+     * Creates a new assertion for the given list of tiles.
+     *
+     * @param <T>    the temporal type
+     * @param actual the list of tiles to assert on
+     * @return a new {@link TemporalTileListAssert} instance
+     */
     static <T extends Temporal & Comparable<? super T>>
     TemporalTileListAssert<T> assertTiles(final List<TemporalTile<T>> actual) {
         return new TemporalTileListAssert<>(actual);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Creates a new assertion for the given list of tiles.
+     *
+     * @param actual the list of tiles to assert on
+     */
     TemporalTileListAssert(final List<TemporalTile<T>> actual) {
         super(actual, TemporalTileListAssert.class);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
+
+    /** {@inheritDoc} */
     @Override
     protected TemporalTileAssert<T> toAssert(final TemporalTile<T> value, final String description) {
         return new TemporalTileAssert<>(value).as(description);
     }
 
+    /** {@inheritDoc} */
     @Override
     protected TemporalTileListAssert<T> newAbstractIterableAssert(Iterable<? extends TemporalTile<T>> iterable) {
         @SuppressWarnings("unchecked")

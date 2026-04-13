@@ -19,6 +19,9 @@ import java.util.Set;
  */
 final class _TestConstants {
 
+    /**
+     * The number of days in a week, derived from {@link ChronoField#DAY_OF_WEEK}.
+     */
     static final long NUMBER_OF_DAYS_OF_A_WEEK = ChronoField.DAY_OF_WEEK.range().getMaximum();
 
     // -----------------------------------------------------------------------------------------------------------------

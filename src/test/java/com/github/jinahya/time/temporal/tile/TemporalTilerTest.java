@@ -8,6 +8,13 @@ import org.junit.jupiter.api.Test;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * Tests for {@link TemporalTiler}, demonstrating {@link YearMonth}-based tiling by {@link ChronoUnit#MONTHS} and
+ * hierarchical tiling from {@link YearMonth} down to {@link ChronoUnit#DAYS} via conversion to
+ * {@link java.time.LocalDate}.
+ *
+ * @see TemporalTiler
+ */
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @Slf4j
 class TemporalTilerTest {

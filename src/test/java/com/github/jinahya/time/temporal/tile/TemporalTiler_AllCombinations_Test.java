@@ -71,6 +71,9 @@ class TemporalTiler_AllCombinations_Test {
 
     // ------------------------------------------------------------------------------------------------ test method impls
 
+    /**
+     * Tiles a grain-aligned range and verifies all tiles are aligned.
+     */
     @SuppressWarnings("unchecked")
     private static <T extends Temporal & Comparable<? super T>>
     void doAllAligned(final Class<?> type, final ChronoUnit grain) {
@@ -83,6 +86,9 @@ class TemporalTiler_AllCombinations_Test {
         assertTiles(tiles).isAllAligned();
     }
 
+    /**
+     * Tiles a range where {@code start == end} and verifies the result is empty.
+     */
     @SuppressWarnings("unchecked")
     private static <T extends Temporal & Comparable<? super T>>
     void doEmptyRange(final Class<?> type, final ChronoUnit grain) {
@@ -91,6 +97,9 @@ class TemporalTiler_AllCombinations_Test {
         assertThat(tiles).isEmpty();
     }
 
+    /**
+     * Tiles a range starting and ending off-boundary, verifying partial head/tail and aligned interior.
+     */
     @SuppressWarnings("unchecked")
     private static <T extends Temporal & Comparable<? super T>>
     void doPartialHeadAndTail(final Class<?> type, final ChronoUnit grain) {
@@ -107,6 +116,9 @@ class TemporalTiler_AllCombinations_Test {
         assertTiles(tiles).hasAlignedInterior();
     }
 
+    /**
+     * Tiles a range smaller than one grain unit, verifying a single partial tile.
+     */
     @SuppressWarnings("unchecked")
     private static <T extends Temporal & Comparable<? super T>>
     void doSmallerThanGrain(final Class<?> type, final ChronoUnit grain) {
@@ -122,9 +134,15 @@ class TemporalTiler_AllCombinations_Test {
 
     // ---------------------------------------------------------------------------------------------------- combinations
 
+    /**
+     * A (temporal type, grain) pair for parameterized test generation.
+     */
     private record Combination(Class<? extends Temporal> type, ChronoUnit grain) {
     }
 
+    /**
+     * Returns a stream of all supported (type, grain) combinations from {@link _TestConstants#SUPPORTED_GRAINS}.
+     */
     private static Stream<Combination> combinations() {
         return SUPPORTED_GRAINS.entrySet().stream()
                 .flatMap(e -> e.getValue().stream()
@@ -133,6 +151,9 @@ class TemporalTiler_AllCombinations_Test {
 
     // -------------------------------------------------------------------------------------------------- aligned starts
 
+    /**
+     * Returns a grain-boundary-aligned start value for the given temporal type and grain.
+     */
     @SuppressWarnings("unchecked")
     private static <T extends Temporal> T alignedStart(final Class<?> type, final ChronoUnit grain) {
         if (type == LocalTime.class) {
@@ -175,6 +196,9 @@ class TemporalTiler_AllCombinations_Test {
         throw new IllegalArgumentException("Unsupported type: " + type);
     }
 
+    /**
+     * Returns a {@link LocalDate} that is aligned to the specified grain boundary.
+     */
     private static LocalDate alignedLocalDate(final ChronoUnit grain) {
         return switch (grain) {
             case DAYS -> LocalDate.of(2025, 6, 15);
@@ -189,6 +213,9 @@ class TemporalTiler_AllCombinations_Test {
 
     // ----------------------------------------------------------------------------------------------------- sub-grains
 
+    /**
+     * Returns the next-finer {@link ChronoUnit} below the given grain, used to create an unaligned offset.
+     */
     private static ChronoUnit subGrainUnit(final ChronoUnit grain) {
         return switch (grain) {
             case MICROS -> ChronoUnit.NANOS;
@@ -206,6 +233,10 @@ class TemporalTiler_AllCombinations_Test {
         };
     }
 
+    /**
+     * Returns {@code true} if values of the given type can be unaligned to the given grain. Returns {@code false} when
+     * the type's precision matches the grain (every value is inherently aligned).
+     */
     private static boolean canBeUnaligned(final Class<?> type, final ChronoUnit grain) {
         // NANOS is the finest possible grain — every value is aligned
         if (grain == ChronoUnit.NANOS) return false;
@@ -215,6 +246,11 @@ class TemporalTiler_AllCombinations_Test {
         return true;
     }
 
+    /**
+     * Returns {@code true} if partial-head-and-tail tests are feasible for the given combination. Returns {@code false}
+     * when values cannot be unaligned, or when adding grains would cause wrapping (e.g., {@link LocalTime} with
+     * {@link ChronoUnit#HALF_DAYS}).
+     */
     private static boolean canHavePartialHeadAndTail(final Class<?> type, final ChronoUnit grain) {
         if (!canBeUnaligned(type, grain)) return false;
         // LocalTime with HALF_DAYS: adding grains wraps past 24 hours
@@ -222,6 +258,9 @@ class TemporalTiler_AllCombinations_Test {
         return true;
     }
 
+    /**
+     * Returns the number of grains to use for aligned/partial tests, capped to avoid wrapping on {@link LocalTime}.
+     */
     private static int grainCount(final Class<?> type, final ChronoUnit grain) {
         if (type == LocalTime.class && grain == ChronoUnit.HALF_DAYS) {
             return 1;
