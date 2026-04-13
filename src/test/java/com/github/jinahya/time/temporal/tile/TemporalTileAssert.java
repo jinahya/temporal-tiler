@@ -7,9 +7,23 @@ import java.time.temporal.TemporalUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Custom AssertJ assertion class for {@link TemporalTile}, providing fluent assertions on tile start, end, grain, and
+ * alignment.
+ *
+ * @param <T> the temporal type
+ * @see TemporalTile
+ */
 class TemporalTileAssert<T extends Temporal & Comparable<? super T>>
         extends AbstractAssert<TemporalTileAssert<T>, TemporalTile<T>> {
 
+    /**
+     * Creates a new assertion for the given tile.
+     *
+     * @param <T>    the temporal type
+     * @param actual the tile to assert on
+     * @return a new {@link TemporalTileAssert} instance
+     */
     static <T extends Temporal & Comparable<? super T>>
     TemporalTileAssert<T> assertTile(final TemporalTile<T> actual) {
         return new TemporalTileAssert<>(actual);

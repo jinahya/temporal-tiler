@@ -11,6 +11,12 @@ import java.util.concurrent.ThreadLocalRandom;
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests for {@link TemporalTiler#tile(java.time.temporal.Temporal, java.time.temporal.Temporal, ChronoUnit)} with
+ * {@link ChronoUnit#MINUTES} and {@link ChronoUnit#HOURS} grains using {@link LocalTime}.
+ *
+ * @see TemporalTiler
+ */
 @Slf4j
 class TemporalTiler_LocalTime_Test {
 

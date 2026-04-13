@@ -10,6 +10,13 @@ import java.time.temporal.ChronoUnit;
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests for {@link TemporalTiler#tile(java.time.temporal.Temporal, java.time.temporal.Temporal, ChronoUnit)} with
+ * various grains ({@link ChronoUnit#HOURS}, {@link ChronoUnit#DAYS}, {@link ChronoUnit#MONTHS}) using
+ * {@link OffsetDateTime}.
+ *
+ * @see TemporalTiler
+ */
 @Slf4j
 class TemporalTiler_OffsetDateTime_Test {
 

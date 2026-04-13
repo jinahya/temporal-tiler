@@ -9,6 +9,12 @@ import java.time.temporal.ChronoUnit;
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests for {@link TemporalTiler#tile(java.time.temporal.Temporal, java.time.temporal.Temporal, ChronoUnit)} with
+ * {@link ChronoUnit#MILLENNIA} grain using {@link LocalDate}.
+ *
+ * @see TemporalTiler
+ */
 @Slf4j
 class TemporalTiler_Millennia_Test {
 
@@ -24,7 +30,7 @@ class TemporalTiler_Millennia_Test {
         TemporalTiles_TestUtils.verify(grain, tiles);
         assertThat(tiles).hasSize(3);
         assertTile(tiles.getFirst())
-                .hasStart(LocalDate.of(2025, 6, 15))
+                .hasStart(start)
                 .hasEnd(LocalDate.of(3000, 1, 1))
                 .isNotAligned();
         assertTile(tiles.get(1))
@@ -33,7 +39,7 @@ class TemporalTiler_Millennia_Test {
                 .isAligned();
         assertTile(tiles.getLast())
                 .hasStart(LocalDate.of(4000, 1, 1))
-                .hasEnd(LocalDate.of(4500, 3, 10))
+                .hasEnd(end)
                 .isNotAligned();
     }
 

@@ -9,6 +9,12 @@ import java.time.temporal.ChronoUnit;
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests for {@link TemporalTiler#tile(java.time.temporal.Temporal, java.time.temporal.Temporal, ChronoUnit)} with
+ * {@link ChronoUnit#MICROS} grain using {@link LocalTime}.
+ *
+ * @see TemporalTiler
+ */
 @Slf4j
 class TemporalTiler_Micros_Test {
 
