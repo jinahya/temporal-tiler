@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
+import static com.github.jinahya.time.temporal.tile.TemporalTileListAssert.assertTiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -36,7 +37,7 @@ class TemporalTiler_Years_Weeks_Test {
                 .hasStart(LocalDate.of(2025, 1, 1))
                 .hasEnd(LocalDate.of(2025, 1, 6))
                 .isNotAligned();
-        assertThat(tiles.subList(1, 52)).allSatisfy(t -> assertTile(t).isAligned());
+        assertTiles(tiles.subList(1, 52)).isAllAligned();
         assertTile(tiles.getLast())
                 .hasStart(LocalDate.of(2025, 12, 29))
                 .hasEnd(LocalDate.of(2026, 1, 1))
@@ -60,7 +61,7 @@ class TemporalTiler_Years_Weeks_Test {
         assertTile(tiles.getFirst())
                 .hasStart(LocalDate.of(2024, 1, 1))
                 .isAligned();
-        assertThat(tiles.subList(0, 52)).allSatisfy(t -> assertTile(t).isAligned());
+        assertTiles(tiles.subList(0, 52)).isAllAligned();
         assertTile(tiles.getLast())
                 .hasStart(LocalDate.of(2024, 12, 30))
                 .hasEnd(LocalDate.of(2025, 1, 1))
@@ -85,10 +86,9 @@ class TemporalTiler_Years_Weeks_Test {
             final var weekTiles = TemporalTiler.tile(yearTile, ChronoUnit.WEEKS);
             TemporalTiles_TestUtils.verify(ChronoUnit.WEEKS, weekTiles);
             log.debug("year tile {} -> {} week tiles", yearTile, weekTiles.size());
-            assertThat(weekTiles).isNotEmpty();
             // gap-free: first week tile starts at year tile start, last ends at year tile end
-            assertThat(weekTiles.getFirst().start()).isEqualTo(yearTile.start());
-            assertThat(weekTiles.getLast().end()).isEqualTo(yearTile.end());
+            assertTiles(weekTiles).isNotEmpty();
+            assertTiles(weekTiles).startsAt(yearTile.start()).endsAt(yearTile.end());
         }
     }
 
@@ -114,6 +114,6 @@ class TemporalTiler_Years_Weeks_Test {
                 .hasEnd(LocalDate.of(2026, 1, 1))
                 .isNotAligned();
         // middle tiles are all aligned weeks
-        assertThat(tiles.subList(1, tiles.size() - 1)).allSatisfy(t -> assertTile(t).isAligned());
+        assertTiles(tiles.subList(1, tiles.size() - 1)).isAllAligned();
     }
 }

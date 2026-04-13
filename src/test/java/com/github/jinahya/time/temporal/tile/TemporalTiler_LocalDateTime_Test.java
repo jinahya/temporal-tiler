@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
+import static com.github.jinahya.time.temporal.tile.TemporalTileListAssert.assertTiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -92,7 +93,7 @@ class TemporalTiler_LocalDateTime_Test {
         // -------------------------------------------------------------------------------------------------------- then
         TemporalTiles_TestUtils.verify(grain, tiles);
         assertThat(tiles).hasSize(3);
-        assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
+        assertTiles(tiles).isAllAligned();
     }
 
     @Test

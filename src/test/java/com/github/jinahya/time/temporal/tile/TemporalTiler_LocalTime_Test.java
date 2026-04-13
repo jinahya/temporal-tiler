@@ -9,6 +9,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
+import static com.github.jinahya.time.temporal.tile.TemporalTileListAssert.assertTiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -37,9 +38,8 @@ class TemporalTiler_LocalTime_Test {
             log.debug("tile: {}", t);
         });
         TemporalTiles_TestUtils.verify(grain, tiles);
-        assertThat(tiles).isNotEmpty();
-        assertTile(tiles.getFirst()).hasStart(start);
-        assertTile(tiles.getLast()).hasEnd(end);
+        assertTiles(tiles).isNotEmpty();
+        assertTiles(tiles).startsAt(start).endsAt(end);
     }
 
     @Test
@@ -102,7 +102,7 @@ class TemporalTiler_LocalTime_Test {
         // -------------------------------------------------------------------------------------------------------- then
         TemporalTiles_TestUtils.verify(grain, tiles);
         assertThat(tiles).hasSize(3);
-        assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
+        assertTiles(tiles).isAllAligned();
     }
 
     @Test

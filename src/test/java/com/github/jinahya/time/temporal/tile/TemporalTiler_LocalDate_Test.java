@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
+import static com.github.jinahya.time.temporal.tile.TemporalTileListAssert.assertTiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -54,7 +55,7 @@ class TemporalTiler_LocalDate_Test {
         // -------------------------------------------------------------------------------------------------------- then
         TemporalTiles_TestUtils.verify(grain, tiles);
         assertThat(tiles).hasSize(3);
-        assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
+        assertTiles(tiles).isAllAligned();
     }
 
     @Test
@@ -129,7 +130,7 @@ class TemporalTiler_LocalDate_Test {
         // -------------------------------------------------------------------------------------------------------- then
         TemporalTiles_TestUtils.verify(grain, tiles);
         assertThat(tiles).hasSize(3);
-        assertThat(tiles).allSatisfy(t -> assertTile(t).isAligned());
+        assertTiles(tiles).isAllAligned();
     }
 
     @Test
@@ -142,11 +143,7 @@ class TemporalTiler_LocalDate_Test {
         final var tiles = TemporalTiler.tile(start, end, grain);
         // -------------------------------------------------------------------------------------------------------- then
         TemporalTiles_TestUtils.verify(grain, tiles);
-        assertThat(tiles.getFirst().start()).isEqualTo(start);
-        assertThat(tiles.getLast().end()).isEqualTo(end);
-        for (var i = 0; i < tiles.size() - 1; i++) {
-            assertThat(tiles.get(i).end()).isEqualTo(tiles.get(i + 1).start());
-        }
+        assertTiles(tiles).startsAt(start).endsAt(end).isContiguous();
     }
 
     @Test

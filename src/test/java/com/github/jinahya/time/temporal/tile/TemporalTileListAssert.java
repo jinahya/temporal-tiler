@@ -70,6 +70,7 @@ class TemporalTileListAssert<T extends Temporal & Comparable<? super T>>
     }
 
     // ------------------------------------------------------------------------------------------------ interior aligned
+
     /**
      * Asserts that all interior tiles (excluding first and last) are aligned.
      */
