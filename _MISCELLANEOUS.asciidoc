@@ -1,6 +1,8 @@
 = Miscellaneous
 :toc:
 :toc-placement!:
+:tick: &#10003;
+:cross: &#10007;
 
 toc::[]
 
@@ -54,4 +56,59 @@ NOTE: `FOREVER` and `ERAS` are not supported by `TemporalTiler`.
 | `ERAS` | ~31,556,952,000,000,000 s | -- | no (estimated)
 | `FOREVER` | ~9,223,372,036,854,775,807 s | -- | no (estimated)
 |===
+
+== Supported Temporal Type / Grain Combinations
+
+Not every `Temporal` type supports every `ChronoUnit` grain.
+The temporal type must have enough precision for the requested grain -- e.g., `YearMonth` cannot be tiled by `DAYS` because it has no day component.
+
+The table below shows which combinations are supported ({tick}) and which will throw `UnsupportedTemporalTypeException` ({cross}).
+
+.Temporal type vs ChronoUnit grain
+[cols="<,^,^,^,^,^,^,^,^,^,^,^,^,^", options="header"]
+|===
+| Type | NANOS | MICROS | MILLIS | SECONDS | MINUTES | HOURS | HALF_DAYS | DAYS | WEEKS | MONTHS | YEARS | DECADES | CENTURIES+
+
+| `LocalTime`
+| {tick} | {tick} | {tick} | {tick} | {tick} | {tick} | {tick}
+| {cross} | {cross} | {cross} | {cross} | {cross} | {cross}
+
+| `LocalDate`
+| {cross} | {cross} | {cross} | {cross} | {cross} | {cross} | {cross}
+| {tick} | {tick} | {tick} | {tick} | {tick} | {tick}
+
+| `LocalDateTime`
+| {tick} | {tick} | {tick} | {tick} | {tick} | {tick} | {tick}
+| {tick} | {tick} | {tick} | {tick} | {tick} | {tick}
+
+| `OffsetDateTime`
+| {tick} | {tick} | {tick} | {tick} | {tick} | {tick} | {tick}
+| {tick} | {tick} | {tick} | {tick} | {tick} | {tick}
+
+| `ZonedDateTime`
+| {tick} | {tick} | {tick} | {tick} | {tick} | {tick} | {tick}
+| {tick} | {tick} | {tick} | {tick} | {tick} | {tick}
+
+| `YearMonth`
+| {cross} | {cross} | {cross} | {cross} | {cross} | {cross} | {cross}
+| {cross} | {cross} | {tick} | {tick} | {tick} | {tick}
+
+| `Year`
+| {cross} | {cross} | {cross} | {cross} | {cross} | {cross} | {cross}
+| {cross} | {cross} | {cross} | {tick} | {tick} | {tick}
+|===
+
+NOTE: `CENTURIES+` column covers `CENTURIES` and `MILLENNIA` -- they share the same support pattern.
+
+=== Rules of Thumb
+
+* *Time-based grains* (`NANOS` through `HALF_DAYS`) require the temporal to support `NANO_OF_DAY`.
+  `LocalDate`, `YearMonth`, and `Year` do not, so they cannot be tiled by time-based grains.
+* *`DAYS` and `WEEKS`* require the temporal to support `DAY_OF_WEEK` / `DAY_OF_MONTH`.
+  `YearMonth` and `Year` do not.
+* *`MONTHS`* requires `MONTH_OF_YEAR` (or finer).
+  `Year` does not support it.
+* *`YEARS` and coarser* require `YEAR`, which all date-capable types support.
+* For hierarchical tiling across precision boundaries, convert to a finer type first:
+  `Year` -> `YearMonth.of(year, 1)` -> `LocalDate.of(year, 1, 1)`.
 

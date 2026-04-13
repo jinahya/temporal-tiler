@@ -125,25 +125,43 @@ public final class TemporalTiler {
                 final var dayOfWeek = result.get(ChronoField.DAY_OF_WEEK);
                 yield (T) result.minus(dayOfWeek - 1, ChronoUnit.DAYS);
             }
-            case MONTHS -> (T) result.with(ChronoField.DAY_OF_MONTH, 1);
-            case YEARS -> (T) result.with(ChronoField.DAY_OF_YEAR, 1);
+            case MONTHS -> result.isSupported(ChronoField.DAY_OF_MONTH)
+                    ? (T) result.with(ChronoField.DAY_OF_MONTH, 1)
+                    : result;
+            case YEARS -> result.isSupported(ChronoField.DAY_OF_YEAR)
+                    ? (T) result.with(ChronoField.DAY_OF_YEAR, 1)
+                    : result.isSupported(ChronoField.MONTH_OF_YEAR)
+                      ? (T) result.with(ChronoField.MONTH_OF_YEAR, 1)
+                      : result;
             case DECADES -> {
                 final var year = result.get(ChronoField.YEAR);
-                yield (T) result
-                        .with(ChronoField.YEAR, year - year % 10)
-                        .with(ChronoField.DAY_OF_YEAR, 1);
+                var r = (T) result.with(ChronoField.YEAR, year - Math.floorMod(year, 10));
+                if (r.isSupported(ChronoField.DAY_OF_YEAR)) {
+                    r = (T) r.with(ChronoField.DAY_OF_YEAR, 1);
+                } else if (r.isSupported(ChronoField.MONTH_OF_YEAR)) {
+                    r = (T) r.with(ChronoField.MONTH_OF_YEAR, 1);
+                }
+                yield r;
             }
             case CENTURIES -> {
                 final var year = result.get(ChronoField.YEAR);
-                yield (T) result
-                        .with(ChronoField.YEAR, year - year % 100)
-                        .with(ChronoField.DAY_OF_YEAR, 1);
+                var r = (T) result.with(ChronoField.YEAR, year - Math.floorMod(year, 100));
+                if (r.isSupported(ChronoField.DAY_OF_YEAR)) {
+                    r = (T) r.with(ChronoField.DAY_OF_YEAR, 1);
+                } else if (r.isSupported(ChronoField.MONTH_OF_YEAR)) {
+                    r = (T) r.with(ChronoField.MONTH_OF_YEAR, 1);
+                }
+                yield r;
             }
             case MILLENNIA -> {
                 final var year = result.get(ChronoField.YEAR);
-                yield (T) result
-                        .with(ChronoField.YEAR, year - year % 1000)
-                        .with(ChronoField.DAY_OF_YEAR, 1);
+                var r = (T) result.with(ChronoField.YEAR, year - Math.floorMod(year, 1000));
+                if (r.isSupported(ChronoField.DAY_OF_YEAR)) {
+                    r = (T) r.with(ChronoField.DAY_OF_YEAR, 1);
+                } else if (r.isSupported(ChronoField.MONTH_OF_YEAR)) {
+                    r = (T) r.with(ChronoField.MONTH_OF_YEAR, 1);
+                }
+                yield r;
             }
             default -> throw new UnsupportedOperationException("unsupported grain: " + grain);
         };

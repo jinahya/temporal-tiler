@@ -118,6 +118,30 @@ A tile is "aligned" when both its start and end fall on natural boundaries of it
 
 For date-only types (`LocalDate`), day-alignment is always true for full-day tiles.
 
+## Supported Type / Grain Combinations
+
+Not every `Temporal` type supports every `ChronoUnit` grain. The temporal type must have enough precision for the requested grain — e.g., `YearMonth` cannot be tiled by `DAYS` because it has no day component.
+
+| Type | NANOS | MICROS | MILLIS | SECONDS | MINUTES | HOURS | HALF_DAYS | DAYS | WEEKS | MONTHS | YEARS | DECADES+ |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `LocalTime` | Y | Y | Y | Y | Y | Y | Y | | | | | |
+| `LocalDate` | | | | | | | | Y | Y | Y | Y | Y |
+| `LocalDateTime` | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `OffsetDateTime` | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `ZonedDateTime` | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `YearMonth` | | | | | | | | | | Y | Y | Y |
+| `Year` | | | | | | | | | | | Y | Y |
+
+> **DECADES+** covers `DECADES`, `CENTURIES`, and `MILLENNIA` — they share the same support pattern.
+
+**Rules of thumb:**
+
+- **Time-based grains** (`NANOS` through `HALF_DAYS`) require `NANO_OF_DAY`. `LocalDate`, `YearMonth`, and `Year` do not support it.
+- **`DAYS` and `WEEKS`** require day-level fields (`DAY_OF_WEEK`, `DAY_OF_MONTH`). `YearMonth` and `Year` do not.
+- **`MONTHS`** requires `MONTH_OF_YEAR`. `Year` does not.
+- **`YEARS` and coarser** require `YEAR`, which all date-capable types support.
+- For hierarchical tiling across precision boundaries, convert to a finer type first: `Year` → `YearMonth` → `LocalDate`.
+
 ## Edge Cases
 
 - **Empty range** (`start >= end`): returns an empty list.

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 
 import static com.github.jinahya.time.temporal.tile.TemporalTileAssert.assertTile;
@@ -18,6 +19,31 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Slf4j
 class TemporalTiler_Millennia_Test {
+
+    @Test
+    void __() {
+        // ------------------------------------------------------------------------------------------------------- given
+        final var start = YearMonth.of(2025, 6);
+        final var end = YearMonth.of(4500, 3);
+        final var grain = ChronoUnit.MILLENNIA;
+        // -------------------------------------------------------------------------------------------------------- when
+        final var tiles = TemporalTiler.tile(start, end, grain);
+        // -------------------------------------------------------------------------------------------------------- then
+        TemporalTiles_TestUtils.verify(grain, tiles);
+        assertThat(tiles).hasSize(3);
+        assertTile(tiles.getFirst())
+                .hasStart(start)
+                .hasEnd(YearMonth.of(3000, 1))
+                .isNotAligned();
+        assertTile(tiles.get(1))
+                .hasStart(YearMonth.of(3000, 1))
+                .hasEnd(YearMonth.of(4000, 1))
+                .isAligned();
+        assertTile(tiles.getLast())
+                .hasStart(YearMonth.of(4000, 1))
+                .hasEnd(end)
+                .isNotAligned();
+    }
 
     @Test
     void _PartialHeadAndTail() {
